@@ -3,6 +3,7 @@ package com.springboot.MyTodoList.service;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.springboot.MyTodoList.model.User;
@@ -21,12 +22,16 @@ public class AuthService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+
     private final String SECRET_KEY = "my-secret-key"; // Clave para los tokens
 
-    public String generateToken(String username) {
-        System.out.println("Generando token para: " + username);
+    public String generateToken(User user) {
+        System.out.println("Generando token para: " + user.getUsername());
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(user.getUsername())
+                .claim("role", user.getRole())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hora
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
@@ -41,22 +46,28 @@ public class AuthService {
                     .getBody();
             String username = claims.getSubject();
 
-            return new User(username, "ADMIN");//userRepository.findByUsername(username);
+            return userRepository.findByUsername(username);
         } catch (ExpiredJwtException | SignatureException | MalformedJwtException e) {
             return null; // Token inválido o expirado
         }
     }
 
-    public User registerUser(String username) {
-        if (userRepository.findByUsername(username) != null) {
+    public User registerUser(User user) {
+        if (userRepository.findByUsername(user.getUsername()) != null) {
             return null; // Ya existe el usuario
         }
-        User user = new User(username, "USER");
+        System.out.println("Registrando usuario: " + user);
+        user = new User(user.getUsername(), passwordEncoder.encode(user.getPasswordHash()), user.getRole()); //Change this xd
         return userRepository.save(user);
     }
 
     public User getUserByUsername(String username) {
         return userRepository.findByUsername(username);
+    }
+
+    public boolean validateUser(User user) {
+        User userDB = userRepository.findByUsername(user.getUsername());
+        return userDB != null && passwordEncoder.matches(user.getPasswordHash(), userDB.getPasswordHash());
     }
 }
 

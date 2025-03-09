@@ -8,15 +8,18 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "USER")
+@Table(name = "USERS")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int ID;
 
-    @Column(name = "USERNAME")
+    @Column(name = "USERNAME", unique = true)
     String username;
+
+    @Column(name = "PASSWORD_HASH")
+    String passwordHash;
 
     @Column(name = "ROLE")
     String role;
@@ -24,8 +27,9 @@ public class User {
     public User() {
     }
 
-    public User(String username, String role) {
+    public User(String username, String passwordHash, String role) {
         this.username = username;
+        this.passwordHash = passwordHash;
         this.role = role;
     }
 
@@ -51,6 +55,14 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
 
