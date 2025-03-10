@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.springboot.MyTodoList.dto.LoginUserDto;
+import com.springboot.MyTodoList.dto.RegisterUserDto;
 import com.springboot.MyTodoList.model.User;
 import com.springboot.MyTodoList.repository.UserRepository;
 
@@ -52,22 +54,26 @@ public class AuthService {
         }
     }
 
-    public User registerUser(User user) {
+    public User registerUser(RegisterUserDto user) {
         if (userRepository.findByUsername(user.getUsername()) != null) {
-            return null; // Ya existe el usuario
+            throw new RuntimeException("Usuario ya registrado");
         }
-        System.out.println("Registrando usuario: " + user);
-        user = new User(user.getUsername(), passwordEncoder.encode(user.getPasswordHash()), user.getRole()); //Change this xd
-        return userRepository.save(user);
+        String hashedPassword = passwordEncoder.encode(user.getPassword());
+        User newUser = new User(user.getUsername(), hashedPassword, user.getRole());
+        return userRepository.save(newUser);
     }
 
     public User getUserByUsername(String username) {
         return userRepository.findByUsername(username);
     }
 
-    public boolean validateUser(User user) {
+    public User validateUser(LoginUserDto user) {
         User userDB = userRepository.findByUsername(user.getUsername());
-        return userDB != null && passwordEncoder.matches(user.getPasswordHash(), userDB.getPasswordHash());
+        if (userDB != null && passwordEncoder.matches(user.getPassword(), userDB.getPasswordHash())){
+            return userDB;
+        } else {
+            return null;
+        }
     }
 }
 
