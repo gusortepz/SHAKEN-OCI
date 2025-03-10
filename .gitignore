@@ -48,3 +48,10 @@ frontend/package-lock.json
 frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
+
+logs.log.*.gz
+logs.log.*.tmp
+
+.vscode/
+
+.env
