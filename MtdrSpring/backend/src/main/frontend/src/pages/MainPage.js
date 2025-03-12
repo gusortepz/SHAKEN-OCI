@@ -11,8 +11,8 @@
  * @author  jean.de.lavarene@oracle.com
  */
 import React, { useState, useEffect } from 'react';
-import NewItem from './NewItem';
-import API_LIST from './API';
+import NewItem from '../utils/NewItem';
+import API_LIST from '../utils/API';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Button, TableBody, CircularProgress } from '@mui/material';
 import Moment from 'react-moment';
@@ -23,7 +23,7 @@ import Moment from 'react-moment';
  * and two tables: one that lists the todo items that are to be done and another
  * one with the items that are already done.
  */
-function App() {
+function MainPage() {
     // isLoading is true while waiting for the backend to return the list
     // of items. We use this state to display a spinning circle:
     const [isLoading, setLoading] = useState(false);
@@ -36,10 +36,20 @@ function App() {
     // In case of an error during the API call:
     const [error, setError] = useState();
 
+    const [token, setToken] = useState(localStorage.getItem("token"));
+
+    useEffect(() => {
+      setToken(localStorage.getItem("token"));
+    }, []);
+
     function deleteItem(deleteId) {
       // console.log("deleteItem("+deleteId+")")
       fetch(API_LIST+"/"+deleteId, {
         method: 'DELETE',
+        headers: {
+          "Authorization": `Bearer ${token}`,  // ⬅️ Enviar el token en la cabecera
+          "Content-Type": "application/json"
+        }
       })
       .then(response => {
         // console.log("response=");
@@ -69,7 +79,13 @@ function App() {
       );
     }
     function reloadOneIteam(id){
-      fetch(API_LIST+"/"+id)
+      fetch(API_LIST+"/"+id, {
+        method: "GET",
+        headers: {
+        "Authorization": `Bearer ${token}`,  // ⬅️ Enviar el token en la cabecera
+        "Content-Type": "application/json"
+        }
+      })
         .then(response => {
           if (response.ok) {
             return response.json();
@@ -97,7 +113,8 @@ function App() {
       return fetch(API_LIST+"/"+id, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          "Authorization": `Bearer ${token}`,  // ⬅️ Enviar el token en la cabecera
+          "Content-Type": "application/json"
         },
         body: JSON.stringify(data)
       })
@@ -120,8 +137,14 @@ function App() {
     */
     useEffect(() => {
       setLoading(true);
-      // sleep(5000).then(() => {
-      fetch(API_LIST)
+      
+      fetch(API_LIST, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,  // ⬅️ Enviar el token en la cabecera
+          "Content-Type": "application/json"
+        }
+      })
         .then(response => {
           if (response.ok) {
             return response.json();
@@ -142,7 +165,7 @@ function App() {
       //})
     },
     // https://en.reactjs.org/docs/faq-ajax.html
-    [] // empty deps array [] means
+    [token] // empty deps array [] means
        // this useEffect will run once
        // similar to componentDidMount()
     );
@@ -156,7 +179,8 @@ function App() {
         method: 'POST',
         // We convert the React state to JSON and send it as the POST body
         headers: {
-          'Content-Type': 'application/json'
+          "Authorization": `Bearer ${token}`,  // ⬅️ Enviar el token en la cabecera
+          "Content-Type": "application/json"
         },
         body: JSON.stringify(data),
       }).then((response) => {
@@ -237,4 +261,4 @@ function App() {
       </div>
     );
 }
-export default App;
+export default MainPage;

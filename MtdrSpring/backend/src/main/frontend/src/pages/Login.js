@@ -5,6 +5,7 @@ function Login() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -23,7 +24,7 @@ function Login() {
             
             const data = await response.json();
             localStorage.setItem("token", data.token);
-            //navigate("/");
+            navigate("/");
         } catch (err) {
             setError(err.message);
         }
