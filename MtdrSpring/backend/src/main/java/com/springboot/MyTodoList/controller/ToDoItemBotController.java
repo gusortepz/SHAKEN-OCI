@@ -20,8 +20,12 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import com.springboot.MyTodoList.dto.LoginUserDto;
 import com.springboot.MyTodoList.model.ToDoItem;
+import com.springboot.MyTodoList.model.User;
+import com.springboot.MyTodoList.service.AuthService;
 import com.springboot.MyTodoList.service.ToDoItemService;
+import com.springboot.MyTodoList.service.UserService;
 import com.springboot.MyTodoList.util.BotCommands;
 import com.springboot.MyTodoList.util.BotHelper;
 import com.springboot.MyTodoList.util.BotLabels;
@@ -32,22 +36,63 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 	private static final Logger logger = LoggerFactory.getLogger(ToDoItemBotController.class);
 	private ToDoItemService toDoItemService;
 	private String botName;
+	private UserService userService;
+	private AuthService authService;
 
-	public ToDoItemBotController(String botToken, String botName, ToDoItemService toDoItemService) {
+	public ToDoItemBotController(String botToken, String botName, ToDoItemService toDoItemService, UserService userService, AuthService authService) {
 		super(botToken);
 		logger.info("Bot Token: " + botToken);
 		logger.info("Bot name: " + botName);
 		this.toDoItemService = toDoItemService;
 		this.botName = botName;
+		this.userService = userService;
+		this.authService = authService;
 	}
 
 	@Override
 	public void onUpdateReceived(Update update) {
 
 		if (update.hasMessage() && update.getMessage().hasText()) {
-
-			String messageTextFromTelegram = update.getMessage().getText();
+			//Meter un middleware para verificar si el usuario esta registrado 
+			
 			long chatId = update.getMessage().getChatId();
+			// Middleware: Buscar usuario en la base de datos
+			User user = userService.findByTelegramId(chatId);
+			String messageTextFromTelegram = update.getMessage().getText();
+			if (user == null) {
+				BotHelper.sendMessageToTelegram(chatId, "🔒 Debes iniciar sesión con /login para usar el bot.", this);
+				if (messageTextFromTelegram.startsWith("/login")) {
+					String[] parts = messageTextFromTelegram.split(" ");
+					if (parts.length < 3) {
+						BotHelper.sendMessageToTelegram(chatId, "❌ Uso incorrecto. Escribe: /login <usuario> <contraseña>", this);
+						return;
+					}
+				
+					String username = parts[1];
+					String password = parts[2]; // ⚠️ En un caso real, deberíamos hashear esto antes de comparar
+				
+					//user = userService.findByUsername(username);
+					LoginUserDto loginUserDto = new LoginUserDto();
+					loginUserDto.setUsername(username);
+					loginUserDto.setPassword(password);
+					user = authService.validateUser(loginUserDto);
+					if (user == null ) {
+						BotHelper.sendMessageToTelegram(chatId, "❌ Usuario o contraseña incorrectos.", this);
+						return;
+					}
+				
+					// Guardar el chatId del usuario
+					user.setTelegramId(chatId);
+					userService.saveUser(user);
+				
+					BotHelper.sendMessageToTelegram(chatId, "✅ Has iniciado sesión correctamente.", this);
+					return;
+				} else {
+					return;
+				}
+			}
+
+			
 
 			if (messageTextFromTelegram.equals(BotCommands.START_COMMAND.getCommand())
 					|| messageTextFromTelegram.equals(BotLabels.SHOW_MAIN_SCREEN.getLabel())) {

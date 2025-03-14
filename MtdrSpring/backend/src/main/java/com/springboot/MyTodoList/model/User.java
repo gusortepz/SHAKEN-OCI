@@ -24,7 +24,17 @@ public class User {
     @Column(name = "ROLE")
     String role;
 
+    @Column(name = "TELEGRAM_ID", nullable = true, length = 255)
+    private Long telegramId;
+
     public User() {
+    }
+
+    public User(String username, String passwordHash, String role, Long telegramId) {
+        this.username = username;
+        this.passwordHash = passwordHash;
+        this.role = role;
+        this.telegramId = telegramId;
     }
 
     public User(String username, String passwordHash, String role) {
@@ -63,6 +73,14 @@ public class User {
 
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    public Long getTelegramId() {
+        return telegramId;
+    }
+
+    public void setTelegramId(Long telegramId){
+        this.telegramId = telegramId;
     }
 
 

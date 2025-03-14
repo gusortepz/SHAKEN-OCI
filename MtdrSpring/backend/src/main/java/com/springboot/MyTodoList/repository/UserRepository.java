@@ -9,4 +9,5 @@ import com.springboot.MyTodoList.model.User;
 public interface UserRepository extends JpaRepository<User, Integer> {
 
     User findByUsername(String username);
+    User findByTelegramId(Long telegramId);
 }
