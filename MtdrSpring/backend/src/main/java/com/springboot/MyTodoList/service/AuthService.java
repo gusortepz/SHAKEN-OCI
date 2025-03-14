@@ -75,5 +75,14 @@ public class AuthService {
             return null;
         }
     }
+
+    public User logoutUser(String username) {
+        User user = userRepository.findByUsername(username);
+        if (user != null) {
+            user.setTelegramId(null);
+            userRepository.save(user);
+        }
+        return user;
+    }
 }
 

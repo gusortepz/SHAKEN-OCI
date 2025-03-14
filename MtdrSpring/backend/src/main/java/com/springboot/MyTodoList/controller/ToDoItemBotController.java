@@ -3,6 +3,8 @@ package com.springboot.MyTodoList.controller;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -39,6 +41,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 	private UserService userService;
 	private AuthService authService;
 
+	private final Map<Long, Boolean> userWaitingForTodo = new ConcurrentHashMap<>();
+
 	public ToDoItemBotController(String botToken, String botName, ToDoItemService toDoItemService, UserService userService, AuthService authService) {
 		super(botToken);
 		logger.info("Bot Token: " + botToken);
@@ -53,45 +57,15 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 	public void onUpdateReceived(Update update) {
 
 		if (update.hasMessage() && update.getMessage().hasText()) {
-			//Meter un middleware para verificar si el usuario esta registrado 
-			
-			long chatId = update.getMessage().getChatId();
-			// Middleware: Buscar usuario en la base de datos
-			User user = userService.findByTelegramId(chatId);
-			String messageTextFromTelegram = update.getMessage().getText();
-			if (user == null) {
-				BotHelper.sendMessageToTelegram(chatId, "🔒 Debes iniciar sesión con /login para usar el bot.", this);
-				if (messageTextFromTelegram.startsWith("/login")) {
-					String[] parts = messageTextFromTelegram.split(" ");
-					if (parts.length < 3) {
-						BotHelper.sendMessageToTelegram(chatId, "❌ Uso incorrecto. Escribe: /login <usuario> <contraseña>", this);
-						return;
-					}
-				
-					String username = parts[1];
-					String password = parts[2]; // ⚠️ En un caso real, deberíamos hashear esto antes de comparar
-				
-					//user = userService.findByUsername(username);
-					LoginUserDto loginUserDto = new LoginUserDto();
-					loginUserDto.setUsername(username);
-					loginUserDto.setPassword(password);
-					user = authService.validateUser(loginUserDto);
-					if (user == null ) {
-						BotHelper.sendMessageToTelegram(chatId, "❌ Usuario o contraseña incorrectos.", this);
-						return;
-					}
-				
-					// Guardar el chatId del usuario
-					user.setTelegramId(chatId);
-					userService.saveUser(user);
-				
-					BotHelper.sendMessageToTelegram(chatId, "✅ Has iniciado sesión correctamente.", this);
-					return;
-				} else {
-					return;
-				}
-			}
 
+			System.out.println("Current users waiting for todo" + userWaitingForTodo.toString());
+
+			long chatId = update.getMessage().getChatId();
+			String messageTextFromTelegram = update.getMessage().getText();
+			User user = userAuthMiddleware(update);
+			if (user == null) {
+				return;
+			}
 			
 
 			if (messageTextFromTelegram.equals(BotCommands.START_COMMAND.getCommand())
@@ -246,6 +220,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
 			} else if (messageTextFromTelegram.equals(BotCommands.ADD_ITEM.getCommand())
 					|| messageTextFromTelegram.equals(BotLabels.ADD_NEW_ITEM.getLabel())) {
+
+					userWaitingForTodo.put(chatId, true);
 				try {
 					SendMessage messageToTelegram = new SendMessage();
 					messageToTelegram.setChatId(chatId);
@@ -256,6 +232,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
 					// send message
 					execute(messageToTelegram);
+					return;
 
 				} catch (Exception e) {
 					logger.error(e.getLocalizedMessage(), e);
@@ -263,7 +240,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
 			}
 
-			else {
+			if (userWaitingForTodo.getOrDefault(chatId, false)) {
+				System.out.println("User is waiting for todo");
 				try {
 					ToDoItem newItem = new ToDoItem();
 					newItem.setDescription(messageTextFromTelegram);
@@ -276,11 +254,63 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					messageToTelegram.setText(BotMessages.NEW_ITEM_ADDED.getMessage());
 
 					execute(messageToTelegram);
+					userWaitingForTodo.put(chatId, false);
 				} catch (Exception e) {
 					logger.error(e.getLocalizedMessage(), e);
 				}
 			}
 		}
+	}
+
+	public User userAuthMiddleware(Update update) {
+		long chatId = update.getMessage().getChatId();
+		User user = userService.findByTelegramId(chatId);
+		String messageTextFromTelegram = update.getMessage().getText();
+		// if (user == null) {
+		// 	BotHelper.sendMessageToTelegram(chatId, BotMessages.USER_NOT_AUTHENTICATED.getMessage(), this);
+		// }
+
+
+		if (user == null) {
+			if (messageTextFromTelegram.startsWith("/login")) {
+				String[] parts = messageTextFromTelegram.split(" ");
+				if (parts.length < 3) {
+					BotHelper.sendMessageToTelegram(chatId, "❌ Uso incorrecto. Escribe: /login <usuario> <contraseña>", this);
+					return user;
+				}
+			
+				String username = parts[1];
+				String password = parts[2]; // ⚠️ En un caso real, deberíamos hashear esto antes de comparar
+			
+				//user = userService.findByUsername(username);
+				LoginUserDto loginUserDto = new LoginUserDto();
+				loginUserDto.setUsername(username);
+				loginUserDto.setPassword(password);
+				user = authService.validateUser(loginUserDto);
+				if (user == null ) {
+					BotHelper.sendMessageToTelegram(chatId, "❌ Usuario o contraseña incorrectos.", this);
+					return user;
+				}
+			
+				// Guardar el chatId del usuario
+				user.setTelegramId(chatId);
+				userService.saveUser(user);
+			
+				BotHelper.sendMessageToTelegram(chatId, "✅ Has iniciado sesión correctamente.", this);
+				return user;
+			} else {
+				BotHelper.sendMessageToTelegram(chatId, "🔒 Debes iniciar sesión con /login para usar el bot.", this);
+				return user;
+			}
+		} else {
+			if (messageTextFromTelegram.startsWith("/logout")) {
+				user = authService.logoutUser(user.getUsername());
+				userWaitingForTodo.remove(chatId);
+				BotHelper.sendMessageToTelegram(chatId, "✅ Has cerrado sesión correctamente.", this);
+				return null; // No queremos seguir procesando mensajes de un usuario no autenticado
+			}
+		}
+		return user;
 	}
 
 	@Override
