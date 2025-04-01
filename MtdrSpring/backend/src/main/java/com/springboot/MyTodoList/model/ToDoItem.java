@@ -1,8 +1,17 @@
 package com.springboot.MyTodoList.model;
 
 
-import javax.persistence.*;
 import java.time.OffsetDateTime;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 /*
     representation of the TODOITEM table that exists already
@@ -20,14 +29,20 @@ public class ToDoItem {
     OffsetDateTime creation_ts;
     @Column(name = "done")
     boolean done;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CREATED_BY", nullable = false)
+    private User createdBy;
+
     public ToDoItem(){
 
     }
-    public ToDoItem(int ID, String description, OffsetDateTime creation_ts, boolean done) {
+    public ToDoItem(int ID, String description, OffsetDateTime creation_ts, boolean done, User createdBy) {
         this.ID = ID;
         this.description = description;
         this.creation_ts = creation_ts;
         this.done = done;
+        this.createdBy = createdBy;
     }
 
     public int getID() {
@@ -60,6 +75,14 @@ public class ToDoItem {
 
     public void setDone(boolean done) {
         this.done = done;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
     }
 
     @Override

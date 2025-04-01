@@ -247,6 +247,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					newItem.setDescription(messageTextFromTelegram);
 					newItem.setCreation_ts(OffsetDateTime.now());
 					newItem.setDone(false);
+					newItem.setCreatedBy(user);
 					ResponseEntity entity = addToDoItem(newItem);
 
 					SendMessage messageToTelegram = new SendMessage();
