@@ -6,8 +6,9 @@ public enum BotLabels {
 	HIDE_MAIN_SCREEN("Hide Main Screen"),
 	LIST_ALL_ITEMS("List All Items"), 
 	ADD_NEW_ITEM("Add New Item"),
-	DONE("DONE"),
-	UNDO("UNDO"),
+	MARK_DONE("DONE"),
+	MARK_IN_PROGRESS("INPROGRESS"),
+	MARK_TODO("TODO"),
 	DELETE("DELETE"),
 	MY_TODO_LIST("MY TODO LIST"),
 	DASH("-");

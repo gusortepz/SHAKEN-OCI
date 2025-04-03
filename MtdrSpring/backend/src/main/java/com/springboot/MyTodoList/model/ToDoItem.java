@@ -22,27 +22,75 @@ import javax.persistence.Table;
 public class ToDoItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    int ID;
-    @Column(name = "DESCRIPTION")
-    String description;
+    private int ID;
+
+    @Column(name = "DESCRIPTION", nullable = false, length = 500)
+    private String description;
+
     @Column(name = "CREATION_TS")
-    OffsetDateTime creation_ts;
-    @Column(name = "done")
-    boolean done;
+    private OffsetDateTime creation_ts;
+
+    @Column(name = "STATUS", nullable = false, length = 20)
+    private String status;
+
+    @Column(name = "PRIORITY", nullable = false, length = 10)
+    private String priority;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CREATED_BY", nullable = false)
     private User createdBy;
 
-    public ToDoItem(){
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ASSIGNEE_ID")
+    private User assignee;
 
-    }
-    public ToDoItem(int ID, String description, OffsetDateTime creation_ts, boolean done, User createdBy) {
-        this.ID = ID;
+    @Column(name = "PROJECT_ID")
+    private Long projectId;
+
+    @Column(name = "SPRINT_ID")
+    private Long sprintId;
+
+    @Column(name = "STORY_POINTS")
+    private Integer storyPoints;
+
+    @Column(name = "ESTIMATED_TIME")
+    private Float estimatedTime;
+
+    @Column(name = "REAL_TIME")
+    private Float realTime;
+
+    public ToDoItem() {}
+
+    public ToDoItem(String description, OffsetDateTime creation_ts, String status, String priority,
+                    User createdBy, User assignee, Long projectId, Long sprintId,
+                    Integer storyPoints, Float estimatedTime, Float realTime) {
         this.description = description;
         this.creation_ts = creation_ts;
-        this.done = done;
+        this.status = status;
+        this.priority = priority;
         this.createdBy = createdBy;
+        this.assignee = assignee;
+        this.projectId = projectId;
+        this.sprintId = sprintId;
+        this.storyPoints = storyPoints;
+        this.estimatedTime = estimatedTime;
+        this.realTime = realTime;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
     }
 
     public int getID() {
@@ -69,14 +117,6 @@ public class ToDoItem {
         this.creation_ts = creation_ts;
     }
 
-    public boolean isDone() {
-        return done;
-    }
-
-    public void setDone(boolean done) {
-        this.done = done;
-    }
-
     public User getCreatedBy() {
         return createdBy;
     }
@@ -91,7 +131,6 @@ public class ToDoItem {
                 "ID=" + ID +
                 ", description='" + description + '\'' +
                 ", creation_ts=" + creation_ts +
-                ", done=" + done +
                 '}';
     }
 }
