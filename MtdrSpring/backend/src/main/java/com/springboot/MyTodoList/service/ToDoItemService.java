@@ -48,10 +48,17 @@ public class ToDoItemService {
             toDoItem.setCreation_ts(td.getCreation_ts());
             toDoItem.setDescription(td.getDescription());
             toDoItem.setStatus(td.getStatus());
+            toDoItem.setPriority(td.getPriority());
+            toDoItem.setCreatedBy(td.getCreatedBy());
+            toDoItem.setAssignee(td.getAssignee());
+            toDoItem.setEstimatedTime(td.getEstimatedTime());
+            toDoItem.setRealTime(td.getRealTime());
+            toDoItem.setSprintId(td.getSprintId());
             return toDoItemRepository.save(toDoItem);
         }else{
             return null;
         }
     }
+
 
 }

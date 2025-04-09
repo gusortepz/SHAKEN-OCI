@@ -40,9 +40,8 @@ public class ToDoItem {
     @JoinColumn(name = "CREATED_BY", nullable = false)
     private User createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ASSIGNEE_ID")
-    private User assignee;
+    @Column(name = "ASSIGNEE_ID")
+    private Long assignee;
 
     @Column(name = "PROJECT_ID")
     private Long projectId;
@@ -62,7 +61,7 @@ public class ToDoItem {
     public ToDoItem() {}
 
     public ToDoItem(String description, OffsetDateTime creation_ts, String status, String priority,
-                    User createdBy, User assignee, Long projectId, Long sprintId,
+                    User createdBy, Long assignee, Long projectId, Long sprintId,
                     Integer storyPoints, Float estimatedTime, Float realTime) {
         this.description = description;
         this.creation_ts = creation_ts;
@@ -125,12 +124,60 @@ public class ToDoItem {
         this.createdBy = createdBy;
     }
 
+    public Long getAssignee() {
+        return assignee;
+    }
+
+    public void setAssignee(Long assignee) {
+        this.assignee = assignee;
+    }
+
+    public Long getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(Long projectId) {
+        this.projectId = projectId;
+    }
+
+    public Long getSprintId() {
+        return sprintId;
+    }
+
+    public void setSprintId(Long sprintId) {
+        this.sprintId = sprintId;
+    }
+
+    public Integer getStoryPoints() {
+        return storyPoints;
+    }
+
+    public void setStoryPoints(Integer storyPoints) {
+        this.storyPoints = storyPoints;
+    }
+
+    public Float getEstimatedTime() {
+        return estimatedTime;
+    }
+
+    public void setEstimatedTime(Float estimatedTime) {
+        this.estimatedTime = estimatedTime;
+    }
+
+    public Float getRealTime() {
+        return realTime;
+    }
+
+    public void setRealTime(Float realTime) {
+        this.realTime = realTime;
+    }
+
     @Override
     public String toString() {
         return "ToDoItem{" +
                 "ID=" + ID +
                 ", description='" + description + '\'' +
-                ", creation_ts=" + creation_ts +
+                ", creation_ts=" + creation_ts + '\'' +
                 '}';
     }
 }
