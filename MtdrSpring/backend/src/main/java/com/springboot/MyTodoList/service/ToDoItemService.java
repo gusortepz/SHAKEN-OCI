@@ -18,6 +18,9 @@ public class ToDoItemService {
     private ToDoItemRepository toDoItemRepository;
     public List<ToDoItem> findAll(){
         List<ToDoItem> todoItems = toDoItemRepository.findAll();
+        for (ToDoItem item : todoItems) {
+            System.out.println("ToDoItem: " + item);
+        }
         return todoItems;
     }
     public ResponseEntity<ToDoItem> getItemById(int id){

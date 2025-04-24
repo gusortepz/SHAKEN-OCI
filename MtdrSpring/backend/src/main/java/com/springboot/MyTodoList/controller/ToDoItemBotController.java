@@ -196,7 +196,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 				myTodoListTitleRow.add(BotLabels.MY_TODO_LIST.getLabel());
 				keyboard.add(myTodoListTitleRow);
 
-				System.out.println("All items: " + allItems.toString());
+				System.out.println("All items: BOT" + allItems.toString());
+				
 
 				List<ToDoItem> activeItems = allItems.stream().filter(item -> "INPROGRESS".equals(item.getStatus()))
 						.collect(Collectors.toList());
@@ -639,7 +640,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					newItem.setDescription(description);
 					newItem.setCreation_ts(OffsetDateTime.now());
 					//setDone
-					newItem.setCreatedBy(user);
+					newItem.setCreatedBy((long) user.getID());
 					newItem.setStatus(status);
 					newItem.setPriority("LOW");
 					newItem.setEstimatedTime(estimatedTime);
@@ -767,6 +768,8 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
 	// GET /todolist
 	public List<ToDoItem> getAllToDoItems() { 
+		List<ToDoItem> allItems = toDoItemService.findAll();
+		System.out.println("All items: " + allItems.toString());
 		return toDoItemService.findAll();
 	}
 

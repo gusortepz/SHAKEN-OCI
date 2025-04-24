@@ -36,9 +36,8 @@ public class ToDoItem {
     @Column(name = "PRIORITY", nullable = false, length = 10)
     private String priority;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "CREATED_BY", nullable = false)
-    private User createdBy;
+    @Column(name = "CREATED_BY", nullable = false)
+    private Long createdBy;
 
     @Column(name = "ASSIGNEE_ID")
     private Long assignee;
@@ -61,7 +60,7 @@ public class ToDoItem {
     public ToDoItem() {}
 
     public ToDoItem(String description, OffsetDateTime creation_ts, String status, String priority,
-                    User createdBy, Long assignee, Long projectId, Long sprintId,
+                    Long createdBy, Long assignee, Long projectId, Long sprintId,
                     Integer storyPoints, Float estimatedTime, Float realTime) {
         this.description = description;
         this.creation_ts = creation_ts;
@@ -116,11 +115,11 @@ public class ToDoItem {
         this.creation_ts = creation_ts;
     }
 
-    public User getCreatedBy() {
+    public Long getCreatedBy() {
         return createdBy;
     }
 
-    public void setCreatedBy(User createdBy) {
+    public void setCreatedBy(Long createdBy) {
         this.createdBy = createdBy;
     }
 
@@ -177,7 +176,16 @@ public class ToDoItem {
         return "ToDoItem{" +
                 "ID=" + ID +
                 ", description='" + description + '\'' +
-                ", creation_ts=" + creation_ts + '\'' +
+                ", creation_ts=" + creation_ts +
+                ", status='" + status + '\'' +
+                ", priority='" + priority + '\'' +
+                ", createdBy=" + createdBy +
+                ", assignee=" + assignee +
+                ", projectId=" + projectId +
+                ", sprintId=" + sprintId +
+                ", storyPoints=" + storyPoints +
+                ", estimatedTime=" + estimatedTime +
+                ", realTime=" + realTime +
                 '}';
     }
 }

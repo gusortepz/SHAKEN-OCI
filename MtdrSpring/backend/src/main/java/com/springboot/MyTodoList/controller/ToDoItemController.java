@@ -15,9 +15,14 @@ import java.util.List;
 public class ToDoItemController {
     @Autowired
     private ToDoItemService toDoItemService;
-    //@CrossOrigin
+    @CrossOrigin
     @GetMapping(value = "/todolist")
     public List<ToDoItem> getAllToDoItems(){
+
+        List<ToDoItem> todoItems = toDoItemService.findAll();
+        for (ToDoItem item : todoItems) {
+            System.out.println("ToDoItem CONTROLLER: " + item);
+        }
         return toDoItemService.findAll();
     }
     //@CrossOrigin
