@@ -44,15 +44,16 @@ public class KPIRepositoryImpl implements KPIRepository {
 
     private List<SprintKPI> getAllSprintKPIs() {
         String sql = "SELECT "
-                + "s.ID, s.NAME, "
-                + "COUNT(t.ID), "
-                + "COUNT(CASE WHEN t.STATUS = 'DONE' THEN 1 END), "
-                + "COALESCE(SUM(t.ESTIMATED_TIME), 0), "
-                + "COALESCE(SUM(t.REAL_TIME), 0), "
-                + "COALESCE(SUM(t.STORY_POINTS), 0) "
-                + "FROM SPRINTS s "
-                + "LEFT JOIN TODOITEM t ON s.ID = t.SPRINT_ID "
-                + "GROUP BY s.ID, s.NAME";  // Removed projectId filter
+            + "s.ID, s.NAME, "
+            + "COUNT(t.ID), "
+            + "COUNT(CASE WHEN t.STATUS = 'DONE' THEN 1 END), "
+            + "COALESCE(SUM(t.ESTIMATED_TIME), 0), "
+            + "COALESCE(SUM(t.REAL_TIME), 0), "
+            + "COALESCE(SUM(t.STORY_POINTS), 0) "
+            + "FROM SPRINTS s "
+            + "LEFT JOIN TODOITEM t ON s.ID = t.SPRINT_ID "
+            + "GROUP BY s.ID, s.NAME, s.START_DATE "
+            + "ORDER BY s.START_DATE";
 
         Query query = entityManager.createNativeQuery(sql);
         List<Object[]> results = query.getResultList();

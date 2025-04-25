@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useSearchParams } fro
 import { useEffect, useState } from "react"
 import { Login } from "./pages/Login"
 import { Dashboard } from "./pages/Dashboard"
+import { KpiDashboard } from "./pages/KpiDashboard"
 import { Layout } from "./components/Layout"
 import { ThemeProvider } from "@/components/theme-provider"
 import { parse } from "date-fns"
@@ -40,6 +41,7 @@ function AppRoutes() {
           )
         }
       />
+      <Route path="/kpi" element={isAuthenticated ? <KpiDashboard /> : <Navigate to="/login" />} />
       {/* Add more routes as needed */}
       <Route
         path="/dashboard"

@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router-do
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import {
+  BarChart2,
   CalendarDays,
   CheckSquare,
   ChevronLeft,
@@ -83,6 +84,11 @@ export function Sidebar({ className, selectedDate, onDateSelect }: SidebarProps)
       name: "Dashboard",
       icon: LayoutDashboard,
       path: "/dashboard",
+    },
+    {
+      name: "KPI",
+      icon: BarChart2,
+      path: "/kpi",
     },
     {
       name: "Team",
