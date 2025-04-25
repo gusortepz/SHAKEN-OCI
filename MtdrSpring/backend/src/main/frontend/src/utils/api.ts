@@ -1,4 +1,4 @@
-export const API_BASE_URL = "http://localhost:8080"
+export const API_BASE_URL = "api"
 export const API_TASKS = `${API_BASE_URL}/todolist`
 
 export type TaskStatus = "TODO" | "INPROGRESS" | "DONE"
