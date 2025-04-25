@@ -287,11 +287,12 @@ fi
 # Get MTDR_DB OCID
 while ! state_done MTDR_DB_OCID; do
   MTDR_DB_OCID=`oci db autonomous-database list --compartment-id "$(cat state/COMPARTMENT_OCID)" --query 'join('"' '"',data[?"display-name"=='"'MTDRDB'"' && "lifecycle-state"=='"'AVAILABLE'"'].id)' --raw-output`
-  if [[ "$MTDR_DB_OCID" =~ ocid1.autonomousdatabase* ]]; then
+  if [[ "$MTDR_DB_OCID" =~ ocid1.autonomousdatabase.* ]]; then
+    echo "✅ Found AVAILABLE DB: $MTDR_DB_OCID"
     state_set MTDR_DB_OCID "$MTDR_DB_OCID"
   else
-    echo "ERROR: Incorrect Order DB OCID: $MTDR_DB_OCID"
-    exit
+    echo "⏳ Waiting for MTDRDB to be AVAILABLE..."
+    sleep 5
   fi
 done
 
