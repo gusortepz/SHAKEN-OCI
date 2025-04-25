@@ -560,7 +560,30 @@ export function KpiDashboard() {
                     tickFormatter={(value) => `${value}%`}
                   />
                   <YAxis type="category" dataKey="name" tickLine={false} axisLine={false} width={80} />
-                  <ChartTooltip content={<ChartTooltipContent valueFormatter={(value) => `${value}%`} />} />
+                  <ChartTooltip content={(props) => {
+                    // Check if props are available
+                    if (!props.active || !props.payload) {
+                      return null;
+                    }
+                    
+                    // Create a custom tooltip that formats values as percentages
+                    return (
+                      <div className="recharts-default-tooltip">
+                        <p className="recharts-tooltip-label">{props.label}</p>
+                        <ul className="recharts-tooltip-item-list">
+                          {props.payload.map((entry, index) => (
+                            <li key={index} style={{ color: entry.color }}>
+                              <span className="recharts-tooltip-item-name">{entry.name}</span>
+                              <span className="recharts-tooltip-item-separator">: </span>
+                              <span className="recharts-tooltip-item-value">
+                                {entry.value ? `${entry.value}%` : entry.value}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  }} />
                   <Bar dataKey="completionRate" fill="var(--color-completionRate)" radius={4} />
                 </BarChart>
               </ChartContainer>
