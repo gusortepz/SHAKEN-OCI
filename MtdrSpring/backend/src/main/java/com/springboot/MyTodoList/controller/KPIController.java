@@ -1,16 +1,17 @@
 package com.springboot.MyTodoList.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.springboot.MyTodoList.model.KPI;
 import com.springboot.MyTodoList.repository.KPIRepository;
-import com.springboot.MyTodoList.service.KPIService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@RequestMapping("/kpi")
+@RequestMapping("/api/kpi")
 public class KPIController {
 
     private final KPIRepository kpiRepository;
