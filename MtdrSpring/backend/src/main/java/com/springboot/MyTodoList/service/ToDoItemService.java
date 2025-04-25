@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.springboot.MyTodoList.model.ToDoItem;
@@ -23,12 +21,12 @@ public class ToDoItemService {
         }
         return todoItems;
     }
-    public ResponseEntity<ToDoItem> getItemById(int id){
+    public ToDoItem getItemById(int id){
         Optional<ToDoItem> todoData = toDoItemRepository.findById(id);
         if (todoData.isPresent()){
-            return new ResponseEntity<>(todoData.get(), HttpStatus.OK);
+            return todoData.get();
         }else{
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return null;
         }
     }
     public ToDoItem addToDoItem(ToDoItem toDoItem){
