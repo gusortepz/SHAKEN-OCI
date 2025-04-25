@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Area,
   AreaChart,
@@ -34,76 +34,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
-// Datos de KPI proporcionados
-const sprintKpis = [
-  {
-    totalTasks: 1,
-    completedTasks: 0,
-    totalEstimatedTime: 3.0,
-    totalRealTime: 0.0,
-    totalStoryPoints: 0,
-    id: 2,
-    name: "Sprint1",
-  },
-  {
-    totalTasks: 3,
-    completedTasks: 1,
-    totalEstimatedTime: 6.7,
-    totalRealTime: 0.0,
-    totalStoryPoints: 9,
-    id: 3,
-    name: "Sprint2",
-  },
-  {
-    totalTasks: 1,
-    completedTasks: 0,
-    totalEstimatedTime: 2.0,
-    totalRealTime: 0.0,
-    totalStoryPoints: 0,
-    id: 4,
-    name: "Sprint3",
-  },
-]
-
-const developerKpis = [
-  {
-    assigneeId: 1,
-    totalTasks: 1,
-    totalEstimatedTime: 2.0,
-    totalRealTime: 0.0,
-    totalStoryPoints: 4,
-    completedTasks: 0,
-    completionRate: 0.0,
-  },
-  {
-    assigneeId: 2,
-    totalTasks: 2,
-    totalEstimatedTime: 4.7,
-    totalRealTime: 0.0,
-    totalStoryPoints: 5,
-    completedTasks: 1,
-    completionRate: 50.0,
-  },
-  {
-    assigneeId: 4,
-    totalTasks: 1,
-    totalEstimatedTime: 3.0,
-    totalRealTime: 0.0,
-    totalStoryPoints: 0,
-    completedTasks: 0,
-    completionRate: 0.0,
-  },
-  {
-    assigneeId: 3,
-    totalTasks: 1,
-    totalEstimatedTime: 2.0,
-    totalRealTime: 0.0,
-    totalStoryPoints: 0,
-    completedTasks: 0,
-    completionRate: 0.0,
-  },
-]
+import { getKpi, KpiResponse } from "@/utils/api"
 
 // Configuración para los gráficos de sprint
 const sprintChartConfig = {
@@ -202,15 +133,32 @@ const efficiencyConfig = {
 } satisfies ChartConfig
 
 export function KpiDashboard() {
+  const [data, setData] = useState<KpiResponse>(
+    {
+      sprintKpis: [],
+      developerKpis: [],
+    } as KpiResponse
+  )
+  
   const [selectedSprint, setSelectedSprint] = useState<string>("all")
+
+  useEffect(() => {
+    const token = localStorage.getItem("token") || ""
+    const fetchKpi = async () => {
+      const data = await getKpi(token)
+      setData(data)
+      console.log("Fetched KPI data:", data)
+    }
+    fetchKpi()
+  }, [])
 
   // Filtrar datos según el sprint seleccionado
   const filteredSprintKpis =
-    selectedSprint === "all" ? sprintKpis : sprintKpis.filter((sprint) => sprint.id.toString() === selectedSprint)
+    selectedSprint === "all" ? data.sprintKpis : data.sprintKpis.filter((sprint) => sprint.id.toString() === selectedSprint)
 
   // Filtrar desarrolladores según el sprint seleccionado (simulado, ya que no tenemos relación directa)
   // En un caso real, necesitaríamos datos que relacionen desarrolladores con sprints
-  const filteredDeveloperKpis = selectedSprint === "all" ? developerKpis : developerKpis // En un caso real, filtrar por sprint
+  const filteredDeveloperKpis = selectedSprint === "all" ? data.developerKpis : data.developerKpis // En un caso real, filtrar por sprint
 
   // Calcular totales para las tarjetas de métricas basados en los datos filtrados
   const totalTasks = filteredSprintKpis.reduce((acc, sprint) => acc + sprint.totalTasks, 0)
@@ -280,7 +228,7 @@ export function KpiDashboard() {
           <h1 className="text-3xl font-bold">
             {selectedSprint === "all"
               ? "Project KPI Dashboard"
-              : `KPI Dashboard - ${sprintKpis.find((s) => s.id.toString() === selectedSprint)?.name || ""}`}
+              : `KPI Dashboard - ${data.sprintKpis.find((s) => s.id.toString() === selectedSprint)?.name || ""}`}
           </h1>
 
           <Select value={selectedSprint} onValueChange={setSelectedSprint}>
@@ -289,7 +237,7 @@ export function KpiDashboard() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Sprints</SelectItem>
-              {sprintKpis.map((sprint) => (
+              {data.sprintKpis.map((sprint) => (
                 <SelectItem key={sprint.id} value={sprint.id.toString()}>
                   {sprint.name}
                 </SelectItem>
@@ -312,7 +260,7 @@ export function KpiDashboard() {
               <p className="text-xs text-muted-foreground mt-1">
                 {selectedSprint === "all"
                   ? "Across all sprints"
-                  : `In ${sprintKpis.find((s) => s.id.toString() === selectedSprint)?.name || ""}`}
+                  : `In ${data.sprintKpis.find((s) => s.id.toString() === selectedSprint)?.name || ""}`}
               </p>
             </CardContent>
           </Card>
@@ -347,7 +295,7 @@ export function KpiDashboard() {
                 Total story points{" "}
                 {selectedSprint === "all"
                   ? "across all sprints"
-                  : `in ${sprintKpis.find((s) => s.id.toString() === selectedSprint)?.name || ""}`}
+                  : `in ${data.sprintKpis.find((s) => s.id.toString() === selectedSprint)?.name || ""}`}
               </p>
             </CardContent>
           </Card>
@@ -365,7 +313,7 @@ export function KpiDashboard() {
                 Total estimated hours{" "}
                 {selectedSprint === "all"
                   ? "for all tasks"
-                  : `in ${sprintKpis.find((s) => s.id.toString() === selectedSprint)?.name || ""}`}
+                  : `in ${data.sprintKpis.find((s) => s.id.toString() === selectedSprint)?.name || ""}`}
               </p>
             </CardContent>
           </Card>
@@ -380,7 +328,7 @@ export function KpiDashboard() {
               <CardDescription>Tasks by sprint</CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={sprintChartConfig} className="h-[300px]">
+              <ChartContainer config={sprintChartConfig} className="h-[300px] w-full">
                 <BarChart data={sprintChartData}>
                   <CartesianGrid vertical={false} strokeDasharray="3 3" />
                   <XAxis dataKey="name" tickLine={false} axisLine={false} />
@@ -415,7 +363,7 @@ export function KpiDashboard() {
               <CardDescription>Task count evolution across sprints</CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={taskTrendConfig} className="h-[300px]">
+              <ChartContainer config={taskTrendConfig} className="h-[300px] w-full">
                 <AreaChart data={taskTrendData}>
                   <defs>
                     <linearGradient id="colorTasks" x1="0" y1="0" x2="0" y2="1">
@@ -449,7 +397,7 @@ export function KpiDashboard() {
               <CardDescription>Estimated time by developer</CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={timeEstimationConfig} className="h-[300px]">
+              <ChartContainer config={timeEstimationConfig} className="h-[300px] w-full">
                 <LineChart data={devTimeData}>
                   <CartesianGrid vertical={false} strokeDasharray="3 3" />
                   <XAxis dataKey="name" tickLine={false} axisLine={false} />
@@ -483,8 +431,8 @@ export function KpiDashboard() {
               <CardDescription>Task completion rate</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 pb-0">
-              <ChartContainer config={efficiencyConfig} className="mx-auto aspect-square max-h-[250px]">
-                <RadialBarChart data={efficiencyData} innerRadius={60} outerRadius={120} startAngle={180} endAngle={0}>
+              <ChartContainer config={efficiencyConfig} className="mx-auto aspect-square max-h-[250px] w-full">
+                <RadialBarChart data={efficiencyData} innerRadius={80} outerRadius={140} startAngle={180} endAngle={0}>
                   <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
                     <Label
                       content={({ viewBox }) => {
@@ -545,7 +493,7 @@ export function KpiDashboard() {
               <CardDescription>Percentage of tasks completed by developer</CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={completionRateConfig} className="h-[250px]">
+              <ChartContainer config={completionRateConfig} className="h-[250px] w-full">
                 <BarChart
                   data={developerCompletionData}
                   layout="vertical"
@@ -597,7 +545,7 @@ export function KpiDashboard() {
               <CardDescription>By developer</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 pb-0">
-              <ChartContainer config={storyPointsConfig} className="mx-auto aspect-square max-h-[250px]">
+              <ChartContainer config={storyPointsConfig} className="mx-auto aspect-square max-h-[250px] w-full">
                 <PieChart>
                   <ChartTooltip content={<ChartTooltipContent hideLabel />} />
                   <Pie
@@ -662,7 +610,7 @@ export function KpiDashboard() {
               <CardDescription>Tasks and completion rates by developer</CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={developerChartConfig} className="h-[300px]">
+              <ChartContainer config={developerChartConfig} className="h-[300px] w-full">
                 <BarChart data={developerChartData}>
                   <CartesianGrid vertical={false} strokeDasharray="3 3" />
                   <XAxis dataKey="name" tickLine={false} axisLine={false} />
@@ -683,7 +631,7 @@ export function KpiDashboard() {
               <CardDescription>Estimated time by sprint</CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={timeEstimationConfig} className="h-[300px]">
+              <ChartContainer config={timeEstimationConfig} className="h-[300px] w-full">
                 <LineChart data={timeEstimationData}>
                   <CartesianGrid vertical={false} strokeDasharray="3 3" />
                   <XAxis dataKey="name" tickLine={false} axisLine={false} />

@@ -21,24 +21,37 @@ export interface Task {
 
 export interface User {
   id: number
-  name: string
+  username: string
+  role: string
   avatar?: string
 }
 
-// Mock users (replace with actual API call if available)
-// export const users: User[] = fetch(`${API_BASE_URL}/users`);
-export const users: User[] = [
-  { id: 1, name: "Dano", avatar: "A1" },
-  { id: 2, name: "Pablo", avatar: "B2" },
-  { id: 3, name: "Gustavo", avatar: "C3" },
-  { id: 4, name: "Joaquin", avatar: "D4" },
-  { id: 5, name: "Lucas", avatar: "E5" },
-]
+export type SprintKpi = {
+    id: number
+    name: string
+    totalTasks: number
+    completedTasks: number
+    totalEstimatedTime: number
+    totalRealTime: number
+    totalStoryPoints: number
+  }
+  
+export type DeveloperKpi = {
+    assigneeId: number
+    totalTasks: number
+    completedTasks: number
+    completionRate: number
+    totalEstimatedTime: number
+    totalRealTime: number
+    totalStoryPoints: number
+  }
+  
+export type KpiResponse = {
+    sprintKpis: SprintKpi[]
+    developerKpis: DeveloperKpi[]
+  }
+  
 
-// Get user by id
-export const getUserById = (id: number): User => {
-  return users.find(user => user.id === id) || { id, name: `User ${id}`, avatar: `U${id}` }
-}
 
 // API functions with authentication
 export const fetchTasks = async (token: string): Promise<Task[]> => {
@@ -56,59 +69,101 @@ export const fetchTasks = async (token: string): Promise<Task[]> => {
   return response.json()
 }
 
-export const createTask = async (token: string, description: string): Promise<Task> => {
-  const response = await fetch(API_TASKS, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ description }),
-  })
-
-  if (!response.ok) {
-    throw new Error("Failed to create task")
-  }
-
-  // Get the ID from the location header
-  const id = response.headers.get("location")
-
-  // Return a partial task object with the information we have
-  return {
-    id: id || "",
-    description,
-    status: "TODO",
-    creation_ts: new Date().toISOString(),
-    priority: "LOW",
-    createdBy: 1, // Default to current user
-    assignee: 1, // Default to current user
-    projectId: null,
-    sprintId: null,
-    storyPoints: null,
-    estimatedTime: null,
-    realTime: null,
-  }
+export const getKpi = async (token: string): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}/kpi/all`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+        })
+    if (!response.ok) {
+        throw new Error("Failed to fetch KPI")
+    }
+    return response.json()
 }
 
-export const updateTaskStatus = async (
-  token: string,
-  id: string | number,
-  description: string,
-  status: TaskStatus,
-): Promise<void> => {
-  const response = await fetch(`${API_TASKS}/${id}`, {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ description, status }),
-  })
-
-  if (!response.ok) {
-    throw new Error("Failed to update task")
+// Add this function after the getUserById function
+export const fetchUsers = async (token: string): Promise<User[]> => {
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+  
+    if (!response.ok) {
+      throw new Error("Failed to fetch users")
+    }
+  
+    return response.json()
   }
+
+export const createTask = async (token: string, taskData: Partial<Task>): Promise<Task> => {
+    const response = await fetch(API_TASKS, {
+        method: "POST",
+        headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        },
+        body: JSON.stringify(taskData),
+    })
+
+    if (!response.ok) {
+        throw new Error("Failed to create task")
+    }
+
+    // Get the ID from the location header
+    const id = response.headers.get("location")
+
+    // Return a partial task object with the information we have
+    return {
+        id: id || "",
+        description: taskData.description || "",
+        status: taskData.status || "TODO",
+        creation_ts: taskData.creation_ts || new Date().toISOString(),
+        priority: taskData.priority || "LOW",
+        createdBy: taskData.createdBy || 1,
+        assignee: taskData.assignee || 1,
+        projectId: null,
+        sprintId: taskData.sprintId || null,
+        storyPoints: taskData.storyPoints || null,
+        estimatedTime: taskData.estimatedTime || null,
+        realTime: taskData.realTime || null,
+    }
 }
+
+export const updateTaskStatus = async (token: string, task: Task, newStatus: TaskStatus): Promise<void> => {
+    const updatedTask = { ...task, status: newStatus }
+    const response = await fetch(`${API_TASKS}/${task.id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedTask),
+    })
+  
+    if (!response.ok) {
+      throw new Error("Failed to update task")
+    }
+  }
+
+  export const updateTaskPriority = async (token: string, task: Task, newPriority: TaskPriority): Promise<void> => {
+    const updatedTask = { ...task, priority: newPriority }
+  
+    const response = await fetch(`${API_TASKS}/${task.id}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedTask),
+    })
+  
+    if (!response.ok) {
+      throw new Error("Failed to update task priority")
+    }
+  }
 
 export const deleteTask = async (token: string, id: string | number): Promise<void> => {
   const response = await fetch(`${API_TASKS}/${id}`, {

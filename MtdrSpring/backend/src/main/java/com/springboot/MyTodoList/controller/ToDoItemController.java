@@ -1,36 +1,41 @@
 package com.springboot.MyTodoList.controller;
-import com.springboot.MyTodoList.model.ToDoItem;
-import com.springboot.MyTodoList.service.ToDoItemService;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
-
-import java.net.URI;
-import java.util.List;
+import com.springboot.MyTodoList.model.ToDoItem;
+import com.springboot.MyTodoList.service.ToDoItemService;
 
 @RestController
 public class ToDoItemController {
     @Autowired
     private ToDoItemService toDoItemService;
-    @CrossOrigin
+    //@CrossOrigin
     @GetMapping(value = "/todolist")
     public List<ToDoItem> getAllToDoItems(){
 
         List<ToDoItem> todoItems = toDoItemService.findAll();
-        for (ToDoItem item : todoItems) {
-            System.out.println("ToDoItem CONTROLLER: " + item);
-        }
-        return toDoItemService.findAll();
+        return todoItems;
     }
     //@CrossOrigin
     @GetMapping(value = "/todolist/{id}")
     public ResponseEntity<ToDoItem> getToDoItemById(@PathVariable int id){
         try{
-            ResponseEntity<ToDoItem> responseEntity = toDoItemService.getItemById(id);
-            return new ResponseEntity<ToDoItem>(responseEntity.getBody(), HttpStatus.OK);
+            ToDoItem responseEntity = toDoItemService.getItemById(id);
+            if (responseEntity == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<ToDoItem>(responseEntity, HttpStatus.OK);
         }catch (Exception e){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

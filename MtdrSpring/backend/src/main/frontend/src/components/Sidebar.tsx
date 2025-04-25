@@ -26,9 +26,10 @@ interface SidebarProps {
   className?: string
   selectedDate?: Date | undefined
   onDateSelect?: (date: Date | undefined) => void
+  setIsAuthenticated: (value: boolean) => void
 }
 
-export function Sidebar({ className, selectedDate, onDateSelect }: SidebarProps) {
+export function Sidebar({ className, selectedDate, onDateSelect, setIsAuthenticated }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [date, setDate] = useState<Date | undefined>(selectedDate)
@@ -68,6 +69,7 @@ export function Sidebar({ className, selectedDate, onDateSelect }: SidebarProps)
 
   const handleLogout = () => {
     localStorage.removeItem("token")
+    setIsAuthenticated(false)
     navigate("/login")
     toast.info("Logged out", {
       description: "You have been logged out successfully.",

@@ -8,15 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.regex.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -26,8 +23,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import com.springboot.MyTodoList.dto.LoginUserDto;
-import com.springboot.MyTodoList.model.ToDoItem;
 import com.springboot.MyTodoList.model.Sprint;
+import com.springboot.MyTodoList.model.ToDoItem;
 import com.springboot.MyTodoList.model.User;
 import com.springboot.MyTodoList.service.AuthService;
 import com.springboot.MyTodoList.service.SprintService;
@@ -129,9 +126,9 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
 				try {
 
-					ToDoItem item = getToDoItemById(id).getBody();
+					ToDoItem item = toDoItemService.getItemById(id);
 					item.setStatus("DONE");
-					updateToDoItem(item, id);
+					toDoItemService.updateToDoItem(id, item);
 					BotHelper.sendMessageToTelegram(chatId, BotMessages.ITEM_DONE.getMessage(), this);
 
 				} catch (Exception e) {
@@ -146,9 +143,9 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
 				try {
 
-					ToDoItem item = getToDoItemById(id).getBody();
+					ToDoItem item = toDoItemService.getItemById(id);
 					item.setStatus("TODO");
-					updateToDoItem(item, id);
+					toDoItemService.updateToDoItem(id, item);
 					BotHelper.sendMessageToTelegram(chatId, BotMessages.ITEM_UNDONE.getMessage(), this);
 
 				} catch (Exception e) {
@@ -163,7 +160,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 
 				try {
 
-					deleteToDoItem(id).getBody();
+					toDoItemService.deleteToDoItem(id);
 					BotHelper.sendMessageToTelegram(chatId, BotMessages.ITEM_DELETED.getMessage(), this);
 
 				} catch (Exception e) {
@@ -179,7 +176,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 				|| messageTextFromTelegram.equals(BotLabels.LIST_ALL_ITEMS.getLabel()) 
 				|| messageTextFromTelegram.equals(BotLabels.MY_TODO_LIST.getLabel())) {
 
-				List<ToDoItem> allItems = getAllToDoItems();
+				List<ToDoItem> allItems = toDoItemService.findAll();
 				ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
 				List<KeyboardRow> keyboard = new ArrayList<>();
 
@@ -232,7 +229,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					}
 					KeyboardRow currentRow = new KeyboardRow();
 					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + item.getDescription());
-					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + item.getStatus());
+					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + BotLabels.MARK_TODO.getLabel());
 					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + BotLabels.DELETE.getLabel());
 					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + assignee);
 
@@ -242,7 +239,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 				List<ToDoItem> todoItems = allItems.stream().filter(item -> "TODO".equals(item.getStatus()))
 				.collect(Collectors.toList());
 
-				System.out.println("Done items: " + todoItems.toString());
+				System.out.println("Todo items: " + todoItems.toString());
 
 				for (ToDoItem item : todoItems) {
 					String assignee = "No Assignee";
@@ -252,7 +249,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					}
 					KeyboardRow currentRow = new KeyboardRow();
 					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + item.getDescription());
-					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + item.getStatus());
+					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + BotLabels.MARK_DONE.getLabel());
 					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + BotLabels.DELETE.getLabel());
 					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + assignee);
 
@@ -279,7 +276,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 			} else if (messageTextFromTelegram.equals(BotCommands.SPRING_LIST.getCommand()) 
 				|| messageTextFromTelegram.equals(BotLabels.LIST_ALL_SPRINTS.getLabel())) {
 
-				List<Sprint> allItems = getAllSprints();
+				List<Sprint> allItems = sprintService.findAllSprints();
 				ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
 				List<KeyboardRow> keyboard = new ArrayList<>();
 
@@ -381,7 +378,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 				String noAssignee = messageTextFromTelegram.substring(0,
 				messageTextFromTelegram.indexOf(BotLabels.DASH.getLabel()));
 				Integer id = Integer.valueOf(noAssignee);
-				ToDoItem selectedTask = toDoItemService.getItemById(id).getBody();
+				ToDoItem selectedTask = toDoItemService.getItemById(id);
 
 				SendMessage messageToTelegram = new SendMessage();
 				messageToTelegram.setChatId(chatId);
@@ -439,7 +436,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 				System.out.println("Task ID: " + taskID);
 				System.out.println("User ID: " + userId);
 
-				ToDoItem oldItem = toDoItemService.getItemById(taskID).getBody();
+				ToDoItem oldItem = toDoItemService.getItemById(taskID);
 
 				System.out.println("********Old item: " + oldItem.toString());
 				ToDoItem newItem = new ToDoItem();
@@ -454,7 +451,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 	
 				
 				try {
-					updateToDoItem(newItem, taskID);
+					toDoItemService.updateToDoItem(taskID, newItem);
 					BotHelper.sendMessageToTelegram(chatId, BotMessages.ITEM_ASSIGNEE_CHANGED.getMessage(), this);
 				} catch (Exception e) {
 					logger.error(e.getLocalizedMessage(), e);
@@ -570,8 +567,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					taskId = Integer.parseInt(taskMatcher.group(1));
 				}
 				
-				ToDoItem oldItem = toDoItemService.getItemById(taskId).getBody();
-
+				ToDoItem oldItem = toDoItemService.getItemById(taskId);
 				ToDoItem newItem = new ToDoItem();
 				newItem.setDescription(oldItem.getDescription());
 				newItem.setCreation_ts(oldItem.getCreation_ts());
@@ -583,7 +579,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 				newItem.setSprintId(Long.valueOf(sprintId));
 
 				try {
-					updateToDoItem(newItem, taskId);
+					toDoItemService.updateToDoItem(taskId, newItem);
 					BotHelper.sendMessageToTelegram(chatId, BotMessages.ITEM_SPRINT_CHANGED.getMessage(), this);
 				} catch (Exception e) {
 					logger.error(e.getLocalizedMessage(), e);
@@ -648,7 +644,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 						newItem.setAssignee(assigneeID);
 					}
 
-					ResponseEntity entity = addToDoItem(newItem);
+					ToDoItem entity = toDoItemService.addToDoItem(newItem);
 
 					SendMessage messageToTelegram = new SendMessage();
 					messageToTelegram.setChatId(chatId);
@@ -691,7 +687,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					newSprint.setEndDate(endDate);
 					newSprint.setStatus("PLANNED");
 
-					ResponseEntity entity = addSprint(newSprint);
+					Sprint entity = sprintService.addSprint(newSprint);
 
 
 					SendMessage messageToTelegram = new SendMessage();
@@ -763,77 +759,4 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 	public String getBotUsername() {		
 		return botName;
 	}
-
-	// GET /
-
-	// GET /todolist
-	public List<ToDoItem> getAllToDoItems() { 
-		List<ToDoItem> allItems = toDoItemService.findAll();
-		System.out.println("All items: " + allItems.toString());
-		return toDoItemService.findAll();
-	}
-
-	// GET BY ID /todolist/{id}
-	public ResponseEntity<ToDoItem> getToDoItemById(@PathVariable int id) {
-		try {
-			ResponseEntity<ToDoItem> responseEntity = toDoItemService.getItemById(id);
-			return new ResponseEntity<ToDoItem>(responseEntity.getBody(), HttpStatus.OK);
-		} catch (Exception e) {
-			logger.error(e.getLocalizedMessage(), e);
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-		}
-	}
-
-	// PUT /todolist
-	public ResponseEntity addToDoItem(@RequestBody ToDoItem todoItem) throws Exception {
-		ToDoItem td = toDoItemService.addToDoItem(todoItem);
-		HttpHeaders responseHeaders = new HttpHeaders();
-		responseHeaders.set("location", "" + td.getID());
-		responseHeaders.set("Access-Control-Expose-Headers", "location");
-		// URI location = URI.create(""+td.getID())
-
-		return ResponseEntity.ok().headers(responseHeaders).build();
-	}
-
-	// UPDATE /todolist/{id}
-	public ResponseEntity updateToDoItem(@RequestBody ToDoItem toDoItem, @PathVariable int id) {
-		try {
-			ToDoItem toDoItem1 = toDoItemService.updateToDoItem(id, toDoItem);
-			System.out.println(toDoItem1.toString());
-			return new ResponseEntity<>(toDoItem1, HttpStatus.OK);
-		} catch (Exception e) {
-			logger.error(e.getLocalizedMessage(), e);
-			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-		}
-	}
-
-	// DELETE todolist/{id}
-	public ResponseEntity<Boolean> deleteToDoItem(@PathVariable("id") int id) {
-		Boolean flag = false;
-		try {
-			flag = toDoItemService.deleteToDoItem(id);
-			return new ResponseEntity<>(flag, HttpStatus.OK);
-		} catch (Exception e) {
-			logger.error(e.getLocalizedMessage(), e);
-			return new ResponseEntity<>(flag, HttpStatus.NOT_FOUND);
-		}
-	}
-
-
-	//GET /sprint
-	public List<Sprint> getAllSprints() {
-		return sprintService.findAllSprints();
-	}
-	//PUT /spring 
-	public ResponseEntity addSprint(@RequestBody Sprint sprint) throws Exception  {
-		Sprint nS = sprintService.addSprint(sprint);
-		HttpHeaders responseHeaders = new HttpHeaders();
-		responseHeaders.set("location", "" + nS.getID());
-		responseHeaders.set("Access-Control-Expose-Headers", "location");
-		// URI location = URI.create(""+td.getID())
-
-		return ResponseEntity.ok().headers(responseHeaders).build();
-
-	}
-
 }

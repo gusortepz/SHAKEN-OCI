@@ -23,6 +23,18 @@ function AppRoutes() {
     setIsAuthenticated(!!token)
   }, [])
 
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "token") {
+        setIsAuthenticated(!!e.newValue)
+      }
+    }
+    
+    window.addEventListener("storage", handleStorageChange)
+    return () => window.removeEventListener("storage", handleStorageChange)
+  }, [])
+
+
   return (
     <Routes>
       <Route
@@ -77,7 +89,7 @@ function AppRoutes() {
         path="/settings"
         element={
           isAuthenticated ? (
-            <Layout>
+            <Layout setIsAuthenticated={setIsAuthenticated}>
               <div className="max-w-6xl mx-auto px-4">
                 <h1 className="text-2xl font-bold mb-6">Settings</h1>
                 <p>This is a placeholder for the Settings page.</p>
