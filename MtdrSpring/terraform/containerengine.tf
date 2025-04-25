@@ -8,7 +8,7 @@ resource "oci_containerengine_cluster" "mtdrworkshop_cluster" {
     ]
     subnet_id = oci_core_subnet.endpoint.id
   }
-  kubernetes_version  = "v1.30.1"
+  kubernetes_version  = "v1.32.1"
   name                = "mtdrworkshopcluster-${var.mtdrKey}"
   vcn_id              = oci_core_vcn.okevcn.id
   #optional
@@ -36,7 +36,7 @@ resource "oci_containerengine_node_pool" "oke_node_pool" {
   #Required
   cluster_id         = oci_containerengine_cluster.mtdrworkshop_cluster.id
   compartment_id     = var.ociCompartmentOcid
-  kubernetes_version = "v1.30.1"
+  kubernetes_version = "v1.32.1"
   name               = "Pool"
   #node_shape        = "VM.Standard.A1.Flex"  #Always Free Option
   node_shape         = "VM.Standard.E3.Flex"
@@ -64,7 +64,7 @@ resource "oci_containerengine_node_pool" "oke_node_pool" {
   }
   node_source_details {
     #Required
-    image_id    = local.oracle_linux_images.0 # Latest
+    image_id    = "ocid1.image.oc1.mx-queretaro-1.aaaaaaaal35jhq5tpggsopt5fhnff7ss4e2mycd5kk5qbrnz2lmuht5riuxq" # Latest
     source_type = "IMAGE"
     #Optional
     #boot_volume_size_in_gbs = "60"
