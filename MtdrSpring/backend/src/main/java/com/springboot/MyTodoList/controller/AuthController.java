@@ -42,7 +42,7 @@ public class AuthController {
     public UserResponse register(@RequestBody RegisterUserDto registerUserDto) {
         System.out.println("Register: " + registerUserDto);
         User user = authService.registerUser(registerUserDto);
-        return new UserResponse(user.getUsername(), user.getRole());
+        return new UserResponse(user.getID(), user.getUsername(), user.getRole());
     }
 }
 

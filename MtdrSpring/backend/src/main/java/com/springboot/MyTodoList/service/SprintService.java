@@ -17,6 +17,7 @@ public class SprintService {
     private SprintRepository sprintRepository;
 
     public List<Sprint> findAllSprints() {
+        
         return sprintRepository.findAll();
     }
 

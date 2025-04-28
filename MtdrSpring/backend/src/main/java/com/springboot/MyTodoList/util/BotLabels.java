@@ -22,7 +22,10 @@ public enum BotLabels {
 	ADD_NEW_PROJECT("Add New Project"),
 	NO_ASSIGNEE("No Assignee"),
 	SELECT_DEVELOPER("Select a Developer for the task: "),
-	SELECT_SPRINT("Select a Task to asign to the sprint: ");
+	SELECT_SPRINT("Select a Task to asign to the sprint: "),
+	LIST_ALL_KPIS("List All KPIs"),
+	LIST_ALL_KPIS_SPRINTS("SPRINTS KPIS"),
+	LIST_ALL_KPIS_DEVELOPER("DEVELOPERS KPIS");
 
 	private String label;
 
