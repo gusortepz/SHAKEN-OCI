@@ -1,8 +1,30 @@
 export const API_BASE_URL = "http://localhost:8080"
 export const API_TASKS = `${API_BASE_URL}/todolist`
+export const API_USERS = `${API_BASE_URL}/users`
+export const API_SPRINTS = `${API_BASE_URL}/sprint`
 
+export enum TaskStatusEnum {
+  TODO = "TODO",
+  INPROGRESS = "INPROGRESS",
+  DONE = "DONE",
+}
+export enum TaskPriorityEnum {
+  LOW = "LOW",
+  MEDIUM = "MEDIUM",
+  HIGH = "HIGH",
+}
 export type TaskStatus = "TODO" | "INPROGRESS" | "DONE"
 export type TaskPriority = "LOW" | "MEDIUM" | "HIGH"
+export type SprintStatus = "PLANNED" | "ACTIVE" | "COMPLETED"
+
+export interface Sprint {
+  id: number
+  name: string
+  projectId: number | null
+  startDate: string
+  endDate: string
+  status: SprintStatus
+}
 
 export interface Task {
   id: string | number
@@ -69,7 +91,22 @@ export const fetchTasks = async (token: string): Promise<Task[]> => {
   return response.json()
 }
 
-export const getKpi = async (token: string): Promise<any> => {
+export const fetchSprints = async (token: string): Promise<Sprint[]> => {
+  const response = await fetch(API_SPRINTS, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch sprints")
+  }
+
+  return response.json()
+}
+
+export const getKpi = async (token: string): Promise<KpiResponse> => {
     const response = await fetch(`${API_BASE_URL}/kpi/all`, {
         headers: {
             Authorization: `Bearer ${token}`,
@@ -84,7 +121,7 @@ export const getKpi = async (token: string): Promise<any> => {
 
 // Add this function after the getUserById function
 export const fetchUsers = async (token: string): Promise<User[]> => {
-    const response = await fetch(`${API_BASE_URL}/users`, {
+    const response = await fetch(API_USERS, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -178,3 +215,21 @@ export const deleteTask = async (token: string, id: string | number): Promise<vo
     throw new Error("Failed to delete task")
   }
 }
+
+export const updateTaskSprint = async (token: string, task: Task, newSprintId: number | null): Promise<void> => {
+  const updatedTask = { ...task, sprintId: newSprintId }
+
+  const response = await fetch(`${API_TASKS}/${task.id}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(updatedTask),
+  })
+
+  if (!response.ok) {
+    throw new Error("Failed to update task sprint")
+  }
+}
+

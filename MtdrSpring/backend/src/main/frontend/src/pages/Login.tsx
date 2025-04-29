@@ -4,10 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
-import { API_BASE_URL } from "@/utils/api"
 
 interface LoginProps {
   setIsAuthenticated: (value: boolean) => void
@@ -24,7 +21,7 @@ export function Login({ setIsAuthenticated }: LoginProps) {
     setIsLoading(true)
 
     try {
-      const response = await fetch(API_BASE_URL + "/api/auth/login", {
+      const response = await fetch("http://localhost:8080" + "/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -95,7 +92,7 @@ export function Login({ setIsAuthenticated }: LoginProps) {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
+            <input
               type="text"
               placeholder="Username"
               value={username}
@@ -104,7 +101,7 @@ export function Login({ setIsAuthenticated }: LoginProps) {
               className="h-11"
             />
 
-            <Input
+            <input
               type="password"
               placeholder="Password"
               value={password}
@@ -113,9 +110,9 @@ export function Login({ setIsAuthenticated }: LoginProps) {
               className="h-11"
             />
 
-            <Button type="submit" className="w-full h-11 bg-black hover:bg-gray-800 text-white" disabled={isLoading}>
+            <button type="submit" className="w-full h-11 bg-black hover:bg-gray-800 text-white" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign In"}
-            </Button>
+            </button>
           </form>
 
           <p className="text-center text-xs text-gray-500 mt-6">
