@@ -17,7 +17,18 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
-import { API_BASE_URL, type Task, type TaskPriority, updateTaskPriority } from "@/utils/api"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  API_BASE_URL,
+  type Task,
+  type TaskPriority,
+  type Sprint,
+  type User as ApiUser,
+  updateTaskPriority,
+  updateTaskSprint,
+  fetchSprints,
+  fetchUsers,
+} from "@/utils/api"
 import { toast } from "sonner"
 
 interface TaskDrawerProps {
@@ -32,14 +43,34 @@ export function TaskDrawer({ taskId, open, onOpenChange, setTasks }: TaskDrawerP
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isChangingPriority, setIsChangingPriority] = useState(false)
+  const [isChangingSprint, setIsChangingSprint] = useState(false)
+  const [sprints, setSprints] = useState<Sprint[]>([])
+  const [isLoadingSprints, setIsLoadingSprints] = useState(false)
+  const [users, setUsers] = useState<ApiUser[]>([])
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false)
 
   useEffect(() => {
     if (open && taskId) {
       fetchTaskDetails(taskId)
+      loadSprints()
+      loadUsers()
     } else {
       setTask(null)
     }
   }, [open, taskId])
+
+  const loadSprints = async () => {
+    setIsLoadingSprints(true)
+    try {
+      const token = localStorage.getItem("token") || ""
+      const fetchedSprints = await fetchSprints(token)
+      setSprints(fetchedSprints)
+    } catch (error) {
+      console.error("Failed to fetch sprints:", error)
+    } finally {
+      setIsLoadingSprints(false)
+    }
+  }
 
   const fetchTaskDetails = async (id: string | number) => {
     setIsLoading(true)
@@ -64,6 +95,19 @@ export function TaskDrawer({ taskId, open, onOpenChange, setTasks }: TaskDrawerP
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const loadUsers = async () => {
+    setIsLoadingUsers(true)
+    try {
+      const token = localStorage.getItem("token") || ""
+      const fetchedUsers = await fetchUsers(token)
+      setUsers(fetchedUsers)
+    } catch (error) {
+      console.error("Failed to fetch users:", error)
+    } finally {
+      setIsLoadingUsers(false)
     }
   }
 
@@ -137,6 +181,58 @@ export function TaskDrawer({ taskId, open, onOpenChange, setTasks }: TaskDrawerP
     } finally {
       setIsChangingPriority(false)
     }
+  }
+
+  // Handle sprint change
+  const handleSprintChange = async (sprintId: string) => {
+    if (!task) return
+
+    const newSprintId = sprintId === "none" ? null : Number.parseInt(sprintId)
+    setIsChangingSprint(true)
+
+    try {
+      const token = localStorage.getItem("token") || ""
+      await updateTaskSprint(token, task, newSprintId)
+
+      // Update local task state
+      const updatedTask = { ...task, sprintId: newSprintId }
+      setTask(updatedTask)
+
+      // Update tasks in parent component if setTasks is provided
+      if (setTasks) {
+        setTasks((prevTasks) => prevTasks.map((t) => (t.id === task.id ? updatedTask : t)))
+      }
+
+      const sprintName = newSprintId
+        ? sprints.find((s) => s.id === newSprintId)?.name || `Sprint #${newSprintId}`
+        : "None"
+
+      toast.success("Sprint updated", {
+        description: `Task assigned to ${sprintName}.`,
+      })
+    } catch (error) {
+      toast.error("Error", {
+        description: "Failed to update task sprint. Please try again.",
+      })
+      console.error("Failed to update task sprint", error)
+    } finally {
+      setIsChangingSprint(false)
+    }
+  }
+
+  // Get sprint name by ID
+  const getSprintName = (sprintId: number | null) => {
+    if (!sprintId) return "None"
+    const sprint = sprints.find((s) => s.id === sprintId)
+    return sprint ? sprint.name : `Sprint #${sprintId}`
+  }
+
+  const getUsernameById = (userId: number | null) => {
+    if (userId === null) return "Unassigned"
+    if (isLoadingUsers) return "Loading..."
+
+    const user = users.find((u) => u.id === userId)
+    return user ? user.username : `User #${userId}`
   }
 
   return (
@@ -256,7 +352,7 @@ export function TaskDrawer({ taskId, open, onOpenChange, setTasks }: TaskDrawerP
                   <p className="text-sm text-muted-foreground mb-1">Assignee</p>
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
-                    <p>{task.assignee != null ? `User #${task.assignee}` : "Unassigned"}</p>
+                    <p>{getUsernameById(task.assignee)}</p>
                   </div>
                 </div>
 
@@ -264,19 +360,47 @@ export function TaskDrawer({ taskId, open, onOpenChange, setTasks }: TaskDrawerP
                   <p className="text-sm text-muted-foreground mb-1">Created By</p>
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
-                    <p>User #{task.createdBy}</p>
+                    <p>{getUsernameById(task.createdBy)}</p>
                   </div>
                 </div>
 
-                {task.sprintId && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Sprint</p>
-                    <div className="flex items-center gap-2">
-                      <BarChart2 className="h-4 w-4 text-muted-foreground" />
-                      <p>Sprint #{task.sprintId}</p>
+                {/* Sprint with dropdown */}
+                <div className="col-span-2">
+                  <p className="text-sm text-muted-foreground mb-1">Sprint</p>
+                  <div className="flex items-center gap-2">
+                    <BarChart2 className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex-1">
+                      <Select
+                        value={task.sprintId?.toString() || "none"}
+                        onValueChange={handleSprintChange}
+                        disabled={isChangingSprint || isLoadingSprints}
+                      >
+                        <SelectTrigger className="h-8 text-sm">
+                          <SelectValue>
+                            {isLoadingSprints ? (
+                              "Loading sprints..."
+                            ) : isChangingSprint ? (
+                              <div className="flex items-center">
+                                <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                                Updating...
+                              </div>
+                            ) : (
+                              getSprintName(task.sprintId)
+                            )}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {sprints.map((sprint) => (
+                            <SelectItem key={sprint.id} value={sprint.id.toString()}>
+                              {sprint.name} ({sprint.status})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-                )}
+                </div>
 
                 {task.estimatedTime !== null && (
                   <div>

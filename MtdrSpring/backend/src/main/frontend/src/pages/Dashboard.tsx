@@ -4,7 +4,16 @@ import { useState, useEffect } from "react"
 import { TaskForm } from "@/components/TaskForm"
 import { TaskList } from "@/components/TaskList"
 import { TaskFilter, type FilterOptions } from "@/components/TaskFilter"
-import { type Task, type TaskStatus, fetchTasks, createTask, updateTaskStatus, deleteTask } from "@/utils/api"
+// Reemplazar con la importación correcta desde el archivo de API
+import {
+  API_BASE_URL,
+  type Task,
+  type TaskStatus,
+  fetchTasks,
+  createTask,
+  updateTaskStatus,
+  deleteTask,
+} from "@/utils/api"
 import { toast } from "sonner"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { format, parse } from "date-fns"
@@ -33,6 +42,8 @@ export function Dashboard({ selectedDate: propSelectedDate }: DashboardProps) {
   })
   const navigate = useNavigate()
   const token = localStorage.getItem("token") || ""
+  // Eliminar la línea que usa process.env
+  //const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL
 
   useEffect(() => {
     if (token) {
@@ -140,6 +151,46 @@ export function Dashboard({ selectedDate: propSelectedDate }: DashboardProps) {
     }
   }
 
+  // Nueva función para actualizar una tarea con tiempo real
+  const handleUpdateTaskWithRealTime = async (task: Task, newStatus: TaskStatus, realTime: number) => {
+    // Add the task ID to the updating list
+    setUpdatingTaskIds((prev) => [...prev, task.id])
+    setIsUpdatingTask(true)
+
+    try {
+      const updatedTask = { ...task, status: newStatus, realTime }
+
+      // Llamar a la API para actualizar la tarea
+      const response = await fetch(`${API_BASE_URL}/tasks/${task.id}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedTask),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to update task")
+      }
+
+      // Update the task in the local state
+      setTasks((prevTasks) => prevTasks.map((t) => (t.id === task.id ? updatedTask : t)))
+
+      toast.success("Task completed", {
+        description: `Task completed with ${realTime} hours of real time.`,
+      })
+    } catch (error) {
+      toast.error("Error", {
+        description: "Failed to update task. Please try again.",
+      })
+    } finally {
+      // Remove the task ID from the updating list
+      setUpdatingTaskIds((prev) => prev.filter((id) => id !== task.id))
+      setIsUpdatingTask(false)
+    }
+  }
+
   const handleDeleteTask = async (id: string | number) => {
     setIsUpdatingTask(true)
     try {
@@ -210,6 +261,7 @@ export function Dashboard({ selectedDate: propSelectedDate }: DashboardProps) {
             updatingTaskIds={updatingTaskIds}
             isUpdatingTask={isUpdatingTask}
             setTasks={setTasks}
+            onUpdateTaskWithRealTime={handleUpdateTaskWithRealTime}
           />
 
           <TaskList
