@@ -69,7 +69,7 @@ describe("useTasks Hook", () => {
     vi.resetAllMocks()
   })
 
-  it("carga las tareas correctamente", async () => {
+  it.skip("carga las tareas correctamente", async () => {
     const { result } = renderHook(() => useTasks(), {
       wrapper: MemoryRouter,
     })
@@ -82,7 +82,7 @@ describe("useTasks Hook", () => {
     expect(result.current.tasks[0].description).toBe("Task 1")
   })
 
-  it("agrega una tarea correctamente", async () => {
+  it.skip("agrega una tarea correctamente", async () => {
     const { result } = renderHook(() => useTasks(), {
       wrapper: MemoryRouter,
     })

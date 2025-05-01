@@ -71,3 +71,20 @@ vi.mock("../components/Layout", () => ({
   Layout: ({ children }) => <div data-testid="layout">{children}</div>,
 }))
 
+describe("KpiDashboard Component", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it("renders correctly", async () => {
+    render(
+      <MemoryRouter>
+        <KpiDashboard />
+      </MemoryRouter>
+    )
+
+    expect(screen.getByTestId("layout")).toBeInTheDocument()
+    expect(screen.getByText("Total Tasks")).toBeInTheDocument()
+    
+  })
+})

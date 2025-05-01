@@ -1,0 +1,41 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "springboot-bot" ]
+  pull_request:
+    branches: [ "springboot-bot" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: MtdrSpring/backend/src/main/frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: MtdrSpring/backend/src/main/frontend
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: MtdrSpring/backend/src/main/frontend
+        run: npm test
+
+      - name: Run backend tests
+        working-directory: MtdrSpring/backend
+        run: ./mvnw test
