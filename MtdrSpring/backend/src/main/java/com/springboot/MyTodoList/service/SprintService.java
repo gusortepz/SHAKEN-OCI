@@ -1,20 +1,26 @@
 package com.springboot.MyTodoList.service;
 
-import com.springboot.MyTodoList.model.Sprint;
-import com.springboot.MyTodoList.repository.SprintRepository;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import com.springboot.MyTodoList.model.Sprint;
+import com.springboot.MyTodoList.model.ToDoItem;
+import com.springboot.MyTodoList.repository.SprintRepository;
+import com.springboot.MyTodoList.repository.ToDoItemRepository;
 
 @Service
 public class SprintService {
 
     @Autowired
     private SprintRepository sprintRepository;
+
+    @Autowired
+    private ToDoItemRepository toDoItemRepository;
 
     public List<Sprint> findAllSprints() {
         
@@ -57,4 +63,13 @@ public class SprintService {
             return false;
         }
     }
+
+    public List<ToDoItem> getCompletedTasksBySprint(Long sprintId) {
+        return toDoItemRepository.findBySprintIdAndStatus(sprintId, "DONE");
+    }
+
+    public List<ToDoItem> getCompletedTasksByUserInSprint(Long sprintId, Long userId) {
+    return toDoItemRepository.findBySprintIdAndStatusAndAssignee(sprintId, "DONE", userId);
+}
+
 }

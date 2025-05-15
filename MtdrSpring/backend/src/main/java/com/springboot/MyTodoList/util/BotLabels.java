@@ -25,7 +25,11 @@ public enum BotLabels {
 	SELECT_SPRINT("Select a Task to asign to the sprint: "),
 	LIST_ALL_KPIS("List All KPIs"),
 	LIST_ALL_KPIS_SPRINTS("SPRINTS KPIS"),
-	LIST_ALL_KPIS_DEVELOPER("DEVELOPERS KPIS");
+	LIST_ALL_KPIS_DEVELOPER("DEVELOPERS KPIS"),
+	COMPLETED_TASKS_SPRINT("TaskCompletedSprint"),
+	COMPLETED_TASKS_USER("TaskCompletedUser"),;
+
+	
 
 	private String label;
 

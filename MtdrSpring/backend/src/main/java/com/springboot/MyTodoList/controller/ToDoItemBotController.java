@@ -572,7 +572,47 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					logger.error(e.getLocalizedMessage(), e);
 				}
 
-			} else if (messageTextFromTelegram.equals(BotCommands.ADD_ITEM.getCommand())
+			} else if (messageTextFromTelegram.startsWith(BotLabels.COMPLETED_TASKS_SPRINT.getLabel())) {
+				try {
+				Long sprintId = Long.parseLong(messageTextFromTelegram.split(" ")[1]);
+				List<ToDoItem> completed = sprintService.getCompletedTasksBySprint(sprintId);
+
+				StringBuilder builder = new StringBuilder("✅ Completed tasks in Sprint " + sprintId + ":\n\n");
+				for (ToDoItem item : completed) {
+					builder.append("• ").append(item.getDescription()).append("\n");
+				}
+
+				SendMessage msg = new SendMessage();
+				msg.setChatId(chatId);
+				msg.setText(builder.toString());
+				execute(msg);
+				} catch (Exception e) {
+					logger.error(e.getLocalizedMessage(), e);
+				}
+			}
+
+			else if (messageTextFromTelegram.startsWith(BotLabels.COMPLETED_TASKS_USER.getLabel())) {
+				try {
+				String[] parts = messageTextFromTelegram.split(" ");
+				Long sprintId = Long.parseLong(parts[1]);
+				Long userId = Long.parseLong(parts[2]);
+
+				List<ToDoItem> completed = sprintService.getCompletedTasksByUserInSprint(sprintId, userId);
+
+				StringBuilder builder = new StringBuilder("✅ Completed tasks by user " + userId + " in Sprint " + sprintId + ":\n\n");
+				for (ToDoItem item : completed) {
+					builder.append("• ").append(item.getDescription()).append("\n");
+				}
+
+				SendMessage msg = new SendMessage();
+				msg.setChatId(chatId);
+				msg.setText(builder.toString());
+				execute(msg);
+				} catch (Exception e) {
+					logger.error(e.getLocalizedMessage(), e);
+				}
+			}
+			else if (messageTextFromTelegram.equals(BotCommands.ADD_ITEM.getCommand())
 				|| messageTextFromTelegram.equals(BotLabels.ADD_NEW_ITEM.getLabel())) {
 
 					userWaitingForTodo.put(chatId, true);
