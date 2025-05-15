@@ -1,53 +1,53 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { toast } from "sonner"
-import { API_BASE_URL } from "@/utils/api"
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { API_BASE_URL } from "@/utils/api";
 
 interface LoginProps {
-  setIsAuthenticated: (value: boolean) => void
+  setIsAuthenticated: (value: boolean) => void;
 }
 
 export function Login({ setIsAuthenticated }: LoginProps) {
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const navigate = useNavigate()
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault()
-    setIsLoading(true)
+    event.preventDefault();
+    setIsLoading(true);
 
     try {
       const response = await fetch(API_BASE_URL + "/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error("Invalid credentials")
+        throw new Error("Invalid credentials");
       }
 
-      const data = await response.json()
-      localStorage.setItem("token", data.token)
-      setIsAuthenticated(true)
-      navigate("/")
+      const data = await response.json();
+      localStorage.setItem("token", data.token);
+      setIsAuthenticated(true);
+      navigate("/");
 
       toast.success("Login successful", {
         description: "Welcome back!",
-      })
+      });
     } catch (err) {
       toast.error("Login failed", {
         description: err instanceof Error ? err.message : "An error occurred",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -76,8 +76,8 @@ export function Login({ setIsAuthenticated }: LoginProps) {
         </div>
         <div>
           <blockquote className="text-2xl font-medium mb-4">
-            "This app has saved me countless hours of work and helped me deliver stunning projects to my clients faster
-            than ever before."
+            "This app has saved me countless hours of work and helped me deliver
+            stunning projects to my clients faster than ever before."
           </blockquote>
           <cite className="text-gray-400">Sofia Davis</cite>
         </div>
@@ -85,11 +85,12 @@ export function Login({ setIsAuthenticated }: LoginProps) {
 
       {/* Right side - Login form */}
       <div className="w-full md:w-1/2 flex flex-col p-4 md:p-10">
-
         <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold mb-2">Log in</h1>
-            <p className="text-gray-500 text-sm">Enter your credentials to access your account</p>
+            <p className="text-gray-500 text-sm">
+              Enter your credentials to access your account
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -111,7 +112,11 @@ export function Login({ setIsAuthenticated }: LoginProps) {
               className="h-11"
             />
 
-            <button type="submit" className="w-full h-11 bg-black hover:bg-gray-800 text-white" disabled={isLoading}>
+            <button
+              type="submit"
+              className="w-full h-11 bg-black hover:bg-gray-800 text-white"
+              disabled={isLoading}
+            >
               {isLoading ? "Signing in..." : "Sign In"}
             </button>
           </form>
@@ -130,5 +135,5 @@ export function Login({ setIsAuthenticated }: LoginProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

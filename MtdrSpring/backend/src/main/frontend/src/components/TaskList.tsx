@@ -1,97 +1,120 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import type { Task, TaskStatus, User } from "@/utils/api"
-import { fetchUsers } from "@/utils/api"
-import { formatDistanceToNow } from "date-fns"
-import { CheckCircle, RotateCcw, Trash2, PlayCircle, Clock, AlertCircle } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import type { Task, TaskStatus, User } from "@/utils/api";
+import { fetchUsers } from "@/utils/api";
+import { formatDistanceToNow } from "date-fns";
+import {
+  CheckCircle,
+  RotateCcw,
+  Trash2,
+  PlayCircle,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
 
 interface TaskListProps {
-  title: string
-  tasks: Task[]
-  status: TaskStatus
-  onUpdateStatus: (id: string | number, description: string, newStatus: TaskStatus) => Promise<void>
-  onDelete: (id: string | number) => Promise<void>
-  updatingTaskIds?: (string | number)[]
+  title: string;
+  tasks: Task[];
+  status: TaskStatus;
+  onUpdateStatus: (task: Task, newStatus: TaskStatus) => Promise<void>;
+  onDelete: (id: string | number) => Promise<void>;
+  updatingTaskIds?: (string | number)[];
 }
 
-export function TaskList({ title, tasks, status, onUpdateStatus, onDelete, updatingTaskIds = [] }: TaskListProps) {
-  const [users, setUsers] = useState<User[]>([])
-  const [isLoadingUsers, setIsLoadingUsers] = useState(false)
-  const filteredTasks = tasks.filter((task) => task.status === status)
+export function TaskList({
+  title,
+  tasks,
+  status,
+  onUpdateStatus,
+  onDelete,
+  updatingTaskIds = [],
+}: TaskListProps) {
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const filteredTasks = tasks.filter((task) => task.status === status);
 
   // Load users
   useEffect(() => {
     const loadUsers = async () => {
       try {
-        setIsLoadingUsers(true)
-        const token = localStorage.getItem("token") || ""
-        const fetchedUsers = await fetchUsers(token)
-        setUsers(fetchedUsers || [])
+        setIsLoadingUsers(true);
+        const token = localStorage.getItem("token") || "";
+        const fetchedUsers = await fetchUsers(token);
+        setUsers(fetchedUsers || []);
       } catch (error) {
-        console.error("Failed to fetch users:", error)
+        console.error("Failed to fetch users:", error);
       } finally {
-        setIsLoadingUsers(false)
+        setIsLoadingUsers(false);
       }
-    }
+    };
 
-    loadUsers()
-  }, [])
+    loadUsers();
+  }, []);
 
   // Define status-specific colors
   const getStatusColor = () => {
     switch (status) {
       case "TODO":
-        return "dark:bg-blue-950 border-blue-800 dark:border-blue-800"
+        return "dark:bg-blue-950 border-blue-800 dark:border-blue-800";
       case "INPROGRESS":
-        return "dark:bg-amber-950 border-amber-600 dark:border-amber-800"
+        return "dark:bg-amber-950 border-amber-600 dark:border-amber-800";
       case "DONE":
-        return "dark:bg-green-950 border-green-800 dark:border-green-800"
+        return "dark:bg-green-950 border-green-800 dark:border-green-800";
       default:
-        return "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800"
+        return "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-800";
     }
-  }
+  };
 
   // Define status-specific header colors
   const getHeaderColor = () => {
     switch (status) {
       case "TODO":
-        return "dark:bg-blue-900 text-blue-800 dark:text-blue-100"
+        return "dark:bg-blue-900 text-blue-800 dark:text-blue-100";
       case "INPROGRESS":
-        return "dark:bg-amber-900 text-amber-800 dark:text-amber-100"
+        return "dark:bg-amber-900 text-amber-800 dark:text-amber-100";
       case "DONE":
-        return "dark:bg-green-900 text-green-800 dark:text-green-100"
+        return "dark:bg-green-900 text-green-800 dark:text-green-100";
       default:
-        return "bg-gray-100 dark:bg-gray-800"
+        return "bg-gray-100 dark:bg-gray-800";
     }
-  }
+  };
 
   // Get priority icon
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
       case "HIGH":
-        return <AlertCircle className="h-3 w-3 text-red-500" title="High Priority" />
+        return (
+          <AlertCircle className="h-3 w-3 text-red-500" title="High Priority" />
+        );
       case "MEDIUM":
-        return <AlertCircle className="h-3 w-3 text-amber-500" title="Medium Priority" />
+        return (
+          <AlertCircle
+            className="h-3 w-3 text-amber-500"
+            title="Medium Priority"
+          />
+        );
       case "LOW":
-        return <AlertCircle className="h-3 w-3 text-blue-500" title="Low Priority" />
+        return (
+          <AlertCircle className="h-3 w-3 text-blue-500" title="Low Priority" />
+        );
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   // Get username by ID
   const getUsernameById = (userId: number) => {
-    if (isLoadingUsers) return `Loading...`
+    if (isLoadingUsers) return `Loading...`;
 
-    if (!users || !Array.isArray(users)) return `User #${userId}`
+    if (!users || !Array.isArray(users)) return `User #${userId}`;
 
-    const user = users.find((u) => u.id === userId)
-    return user ? user.name || user.username : `User #${userId}`
-  }
+    const user = users.find((u) => u.id === userId);
+    return user ? user.username || user.username : `User #${userId}`;
+  };
 
   return (
     <Card className={`h-full shadow-md border ${getStatusColor()}`}>
@@ -111,7 +134,7 @@ export function TaskList({ title, tasks, status, onUpdateStatus, onDelete, updat
         ) : (
           <ul className="space-y-4">
             {filteredTasks.map((task) => {
-              const isUpdating = updatingTaskIds.includes(task.id)
+              const isUpdating = updatingTaskIds.includes(task.id);
 
               return (
                 <li
@@ -123,7 +146,10 @@ export function TaskList({ title, tasks, status, onUpdateStatus, onDelete, updat
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-2">
                         {getPriorityIcon(task.priority)}
-                        <p className="font-medium break-words" data-testid="task-description">
+                        <p
+                          className="font-medium break-words"
+                          data-testid="task-description"
+                        >
                           {task.description}
                         </p>
                       </div>
@@ -136,16 +162,21 @@ export function TaskList({ title, tasks, status, onUpdateStatus, onDelete, updat
                     <div className="flex flex-wrap items-center justify-between text-xs text-muted-foreground">
                       <div className="flex items-center">
                         <Clock className="h-3 w-3 mr-1" />
-                        Created {formatDistanceToNow(new Date(task.creation_ts), { addSuffix: true })}
+                        Created{" "}
+                        {formatDistanceToNow(new Date(task.creation_ts), {
+                          addSuffix: true,
+                        })}
                       </div>
-                      <div className="flex items-center">Assigned to: {getUsernameById(task.assignee)}</div>
+                      <div className="flex items-center">
+                        Assigned to: {getUsernameById(task.assignee)}
+                      </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {status === "TODO" && (
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => onUpdateStatus(task.id, task.description, "INPROGRESS")}
+                          onClick={() => onUpdateStatus(task, "INPROGRESS")}
                           className="h-8 text-xs"
                           disabled={isUpdating}
                         >
@@ -162,7 +193,7 @@ export function TaskList({ title, tasks, status, onUpdateStatus, onDelete, updat
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => onUpdateStatus(task.id, task.description, "DONE")}
+                          onClick={() => onUpdateStatus(task, "DONE")}
                           className="h-8 text-xs"
                           disabled={isUpdating}
                         >
@@ -179,7 +210,7 @@ export function TaskList({ title, tasks, status, onUpdateStatus, onDelete, updat
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => onUpdateStatus(task.id, task.description, "TODO")}
+                          onClick={() => onUpdateStatus(task, "TODO")}
                           className="h-8 text-xs"
                           disabled={isUpdating}
                         >
@@ -204,11 +235,11 @@ export function TaskList({ title, tasks, status, onUpdateStatus, onDelete, updat
                     </div>
                   </div>
                 </li>
-              )
+              );
             })}
           </ul>
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
