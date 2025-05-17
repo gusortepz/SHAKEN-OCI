@@ -36,39 +36,41 @@ vi.mock("../utils/api", () => ({
   ]),
 }))
 
+import React from "react"
+
 vi.mock("recharts", () => {
   return {
-    ResponsiveContainer: ({ children }) => <div data-testid="responsive-container">{children}</div>,
-    PieChart: ({ children }) => <div data-testid="pie-chart">{children}</div>,
-    Pie: ({ children }) => <div data-testid="pie">{children}</div>,
-    BarChart: ({ children }) => <div data-testid="bar-chart">{children}</div>,
-    Bar: ({ children }) => <div data-testid="bar">{children}</div>,
-    XAxis: ({ children }) => <div data-testid="x-axis">{children}</div>,
-    YAxis: ({ children }) => <div data-testid="y-axis">{children}</div>,
+    ResponsiveContainer: ({ children }: { children?: React.ReactNode }) => <div data-testid="responsive-container">{children}</div>,
+    PieChart: ({ children }: { children?: React.ReactNode }) => <div data-testid="pie-chart">{children}</div>,
+    Pie: ({ children }: { children?: React.ReactNode }) => <div data-testid="pie">{children}</div>,
+    BarChart: ({ children }: { children?: React.ReactNode }) => <div data-testid="bar-chart">{children}</div>,
+    Bar: ({ children }: { children?: React.ReactNode }) => <div data-testid="bar">{children}</div>,
+    XAxis: ({ children }: { children?: React.ReactNode }) => <div data-testid="x-axis">{children}</div>,
+    YAxis: ({ children }: { children?: React.ReactNode }) => <div data-testid="y-axis">{children}</div>,
     Tooltip: () => <div data-testid="tooltip" />,
     Legend: () => <div data-testid="legend" />,
     Cell: () => <div data-testid="cell" />,
-    LineChart: ({ children }) => <div data-testid="line-chart">{children}</div>,
-    Line: ({ children }) => <div data-testid="line">{children}</div>,
+    LineChart: ({ children }: { children?: React.ReactNode }) => <div data-testid="line-chart">{children}</div>,
+    Line: ({ children }: { children?: React.ReactNode }) => <div data-testid="line">{children}</div>,
     CartesianGrid: () => <div data-testid="cartesian-grid" />,
-    AreaChart: ({ children }) => <div data-testid="area-chart">{children}</div>,
-    Area: ({ children }) => <div data-testid="area">{children}</div>,
-    LabelList: ({ children }) => <div data-testid="label-list">{children}</div>,
-    Label: ({ content }) => {
+    AreaChart: ({ children }: { children?: React.ReactNode }) => <div data-testid="area-chart">{children}</div>,
+    Area: ({ children }: { children?: React.ReactNode }) => <div data-testid="area">{children}</div>,
+    LabelList: ({ children }: { children?: React.ReactNode }) => <div data-testid="label-list">{children}</div>,
+    Label: ({ content }: { content?: any }) => {
       if (typeof content === "function") {
         return content({ cx: 100, cy: 100 })
       }
       return <div data-testid="label" />
     },
-    PolarRadiusAxis: ({ children }) => <div data-testid="polar-radius-axis">{children}</div>,
-    RadialBar: ({ children }) => <div data-testid="radial-bar">{children}</div>,
-    RadialBarChart: ({ children }) => <div data-testid="radial-bar-chart">{children}</div>,
-    Rectangle: (props) => <div data-testid="rectangle" {...props} />,
+    PolarRadiusAxis: ({ children }: { children?: React.ReactNode }) => <div data-testid="polar-radius-axis">{children}</div>,
+    RadialBar: ({ children }: { children?: React.ReactNode }) => <div data-testid="radial-bar">{children}</div>,
+    RadialBarChart: ({ children }: { children?: React.ReactNode }) => <div data-testid="radial-bar-chart">{children}</div>,
+    Rectangle: (props: any) => <div data-testid="rectangle" {...props} />,
   }
 })
 
 vi.mock("../components/Layout", () => ({
-  Layout: ({ children }) => <div data-testid="layout">{children}</div>,
+  Layout: ({ children }: { children?: React.ReactNode }) => <div data-testid="layout">{children}</div>,
 }))
 
 describe("KpiDashboard Component", () => {

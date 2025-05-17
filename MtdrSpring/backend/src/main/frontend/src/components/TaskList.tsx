@@ -88,18 +88,17 @@ export function TaskList({
     switch (priority) {
       case "HIGH":
         return (
-          <AlertCircle className="h-3 w-3 text-red-500" title="High Priority" />
+          <AlertCircle className="h-3 w-3 text-red-500"  />
         );
       case "MEDIUM":
         return (
           <AlertCircle
             className="h-3 w-3 text-amber-500"
-            title="Medium Priority"
           />
         );
       case "LOW":
         return (
-          <AlertCircle className="h-3 w-3 text-blue-500" title="Low Priority" />
+          <AlertCircle className="h-3 w-3 text-blue-500"/>
         );
       default:
         return null;
