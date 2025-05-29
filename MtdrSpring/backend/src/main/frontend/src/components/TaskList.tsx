@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import type { Task, TaskStatus, User } from "@/utils/api";
-import { fetchUsers } from "@/utils/api";
+import { fetchUsers, updateTaskStatus } from "@/utils/api";
 import { formatDistanceToNow } from "date-fns";
 import {
   CheckCircle,
@@ -14,13 +14,19 @@ import {
   PlayCircle,
   Clock,
   AlertCircle,
+  X,
 } from "lucide-react";
+import { Input } from "./ui/input";
 
 interface TaskListProps {
   title: string;
   tasks: Task[];
   status: TaskStatus;
-  onUpdateStatus: (task: Task, newStatus: TaskStatus) => Promise<void>;
+  onUpdateStatus: (
+    task: Task,
+    newStatus: TaskStatus,
+    realTime?: number
+  ) => Promise<void>;
   onDelete: (id: string | number) => Promise<void>;
   updatingTaskIds?: (string | number)[];
 }
@@ -36,6 +42,9 @@ export function TaskList({
   const [users, setUsers] = useState<User[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const filteredTasks = tasks.filter((task) => task.status === status);
+  const [realTime, setRealTime] = useState<number | null>(null);
+  const [currentTask, setCurrentTask] = useState<Task | null>(null);
+  const [showRealTime, setShowRealTime] = useState(false);
 
   // Load users
   useEffect(() => {
@@ -87,22 +96,19 @@ export function TaskList({
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
       case "HIGH":
-        return (
-          <AlertCircle className="h-3 w-3 text-red-500"  />
-        );
+        return <AlertCircle className="h-3 w-3 text-red-500" />;
       case "MEDIUM":
-        return (
-          <AlertCircle
-            className="h-3 w-3 text-amber-500"
-          />
-        );
+        return <AlertCircle className="h-3 w-3 text-amber-500" />;
       case "LOW":
-        return (
-          <AlertCircle className="h-3 w-3 text-blue-500"/>
-        );
+        return <AlertCircle className="h-3 w-3 text-blue-500" />;
       default:
         return null;
     }
+  };
+
+  const handleRealTimeShow = (task: Task) => {
+    setShowRealTime(true);
+    setCurrentTask(task);
   };
 
   // Get username by ID
@@ -153,7 +159,9 @@ export function TaskList({
                         </p>
                       </div>
                       <Avatar className="h-6 w-6 ml-2 flex-shrink-0">
-                        <AvatarFallback>#{task.assignee}</AvatarFallback>
+                        <AvatarFallback>
+                          #{task.sprintId ? task.sprintId.toString()[1] : ""}
+                        </AvatarFallback>
                       </Avatar>
                     </div>
                   </div>
@@ -167,8 +175,16 @@ export function TaskList({
                         })}
                       </div>
                       <div className="flex items-center">
+                        Estimated time: {task.estimatedTime || 0}hrs
+                      </div>
+                      <div className="flex items-center">
                         Assigned to: {getUsernameById(task.assignee)}
                       </div>
+                      {task.realTime && (
+                        <div className="flex items-center">
+                          Real time: {task.realTime || 0}hrs
+                        </div>
+                      )}
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {status === "TODO" && (
@@ -192,7 +208,7 @@ export function TaskList({
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => onUpdateStatus(task, "DONE")}
+                          onClick={() => handleRealTimeShow(task)}
                           className="h-8 text-xs"
                           disabled={isUpdating}
                         >
@@ -239,6 +255,54 @@ export function TaskList({
           </ul>
         )}
       </CardContent>
+      {showRealTime && currentTask != null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-background rounded-lg shadow-lg p-6 w-full max-w-sm border">
+            <div className="w-full flex justify-end">
+              <X className="w-4 h-4 " onClick={() => setShowRealTime(false)} />
+            </div>
+            <div className="space-y-2 mb-4">
+              <h4 className="font-medium leading-none">Real Hours</h4>
+              <p className="text-sm text-muted-foreground">
+                Enter the actual hours spent on the task:
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Task: {currentTask.description}
+              </p>
+            </div>
+            <div className="grid gap-2 mb-4">
+              <label htmlFor="hours" className="font-medium">
+                Hours
+              </label>
+              <Input
+                id="hours"
+                type="number"
+                step="0.25"
+                min="0"
+                placeholder="Enter hours"
+                onChange={(e) =>
+                  setRealTime(
+                    e.target.value === "" ? null : Number(e.target.value)
+                  )
+                }
+              />
+            </div>
+            <Button
+              className="w-full"
+              onClick={async () => {
+                await onUpdateStatus(
+                  currentTask,
+                  "DONE",
+                  realTime !== null ? realTime : undefined
+                );
+                setShowRealTime(false);
+              }}
+            >
+              Submit & Complete
+            </Button>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }

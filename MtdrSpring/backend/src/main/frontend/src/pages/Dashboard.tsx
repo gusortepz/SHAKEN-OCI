@@ -134,13 +134,17 @@ export function Dashboard({ selectedDate: propSelectedDate }: DashboardProps) {
   };
 
   // Update the handleUpdateStatus function to pass the complete task object
-  const handleUpdateStatus = async (task: Task, newStatus: TaskStatus) => {
+  const handleUpdateStatus = async (
+    task: Task,
+    newStatus: TaskStatus,
+    realTime?: number
+  ) => {
     // Add the task ID to the updating list
     setUpdatingTaskIds((prev) => [...prev, task.id]);
     setIsUpdatingTask(true);
 
     try {
-      await updateTaskStatus(token, task, newStatus);
+      await updateTaskStatus(token, task, newStatus, realTime);
 
       // Update the task in the local state
       setTasks((prevTasks) =>

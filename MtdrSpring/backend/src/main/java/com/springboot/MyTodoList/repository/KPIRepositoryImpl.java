@@ -27,6 +27,8 @@ public class KPIRepositoryImpl implements KPIRepository {
         List<SprintKPI> sprintKPIs = getAllSprintKPIs();
         // Get developer KPIs for all developers
         List<DeveloperKPI> developerKPIs = getAllDeveloperKPIs();
+        // Get developer sprint KPIs for all developers and sprints
+        List<DeveloperSprintKPI> developerSprintKPIs = getAllDeveloperSprintKPIs();
         
         // Print the actual values of SprintKPIs and DeveloperKPIs
         System.out.println("Developer KPIs: ");
@@ -38,8 +40,12 @@ public class KPIRepositoryImpl implements KPIRepository {
         for (SprintKPI sprintKPI : sprintKPIs) {
             System.out.println(sprintKPI);  // This will use the overridden toString() method
         }
+        System.out.println("Developer Sprint KPIs: ");
+        for (DeveloperSprintKPI developerSprintKPI : developerSprintKPIs) {
+            System.out.println(developerSprintKPI);  // This will use the overridden toString() method
+        }
     
-        return new KPI(sprintKPIs, developerKPIs);
+        return new KPI(sprintKPIs, developerKPIs, developerSprintKPIs); 
     }
 
     private List<SprintKPI> getAllSprintKPIs() {
@@ -115,6 +121,45 @@ public class KPIRepositoryImpl implements KPIRepository {
                     ((Number) row[2]).floatValue(),  // Total Estimated Time
                     ((Number) row[3]).floatValue(),  // Total Real Time
                     ((Number) row[4]).intValue(),    // Total Story Points
+                    completedTasks,                  // Completed Tasks
+                    completionRate                   // Completion Rate (Percentage)
+            ));
+        }
+
+        return kpis;
+    }
+
+    private List<DeveloperSprintKPI> getAllDeveloperSprintKPIs() {
+        String sql = "SELECT "
+            + "t.ASSIGNEE_ID, "
+            + "t.SPRINT_ID, "
+            + "COUNT(t.ID), "
+            + "COALESCE(SUM(t.ESTIMATED_TIME), 0), "
+            + "COALESCE(SUM(t.REAL_TIME), 0), "
+            + "COALESCE(SUM(t.STORY_POINTS), 0), "
+            + "SUM(CASE WHEN t.STATUS = 'DONE' THEN 1 ELSE 0 END) "
+            + "FROM TODOITEM t "
+            + "WHERE t.ASSIGNEE_ID IS NOT NULL AND t.SPRINT_ID IS NOT NULL "
+            + "GROUP BY t.ASSIGNEE_ID, t.SPRINT_ID "
+            + "ORDER BY t.SPRINT_ID, t.ASSIGNEE_ID";
+
+        Query query = entityManager.createNativeQuery(sql);
+
+        List<Object[]> results = query.getResultList();
+        List<DeveloperSprintKPI> kpis = new ArrayList<>();
+
+        for (Object[] row : results) {
+            Long totalTasks = ((Number) row[2]).longValue();
+            Long completedTasks = ((Number) row[6]).longValue();
+            double completionRate = totalTasks != 0 ? (completedTasks * 100.0 / totalTasks) : 0.0;
+
+            kpis.add(new DeveloperSprintKPI(
+                    ((Number) row[0]).longValue(),   // Assignee (Developer) ID
+                    ((Number) row[1]).longValue(),   // Sprint ID
+                    totalTasks,                      // Total Tasks Assigned
+                    ((Number) row[3]).floatValue(),  // Total Estimated Time
+                    ((Number) row[4]).floatValue(),  // Total Real Time
+                    ((Number) row[5]).intValue(),    // Total Story Points
                     completedTasks,                  // Completed Tasks
                     completionRate                   // Completion Rate (Percentage)
             ));
