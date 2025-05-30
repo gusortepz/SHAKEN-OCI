@@ -263,7 +263,7 @@ export function KpiDashboard() {
   // Datos para el gráfico de tiempo estimado por sprint
   const developerIds = data.developerKpis.map((dev) => dev.assigneeId);
   const timeEstimationData = data.sprintKpis.map((sprint) => {
-    const entry = {
+    const entry: { name: string; [key: string]: number | string } = {
       name: sprint.name,
     };
 
@@ -286,7 +286,7 @@ export function KpiDashboard() {
   });
 
   const tasksPerSprintData = data.sprintKpis.map((sprint) => {
-    const entry = {
+    const entry: { name: string; [key: string]: number | string } = {
       name: sprint.name,
     };
 
