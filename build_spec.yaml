@@ -17,7 +17,7 @@ steps:
     name: "Build Docker Image"
     command: |
       # Navegar a la carpeta donde está el Dockerfile
-      cd ${OCI_PRIMARY_SOURCE_DIR}/SHAKEN-OCI/MtdrSpring/backend
+      cd ${OCI_PRIMARY_SOURCE_DIR}/MtdrSpring/backend
       
       # Construir la imagen usando el Dockerfile multi-stage
       docker build -t todolistapp-springboot .
