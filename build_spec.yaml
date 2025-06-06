@@ -6,13 +6,19 @@ shell: bash
 env:
   variables:
     DOCKER_REGISTRY: "qro.ocir.io"
-    DOCKER_REPO: "${TENANCY_NAMESPACE}/todolistapp-springboot"
+    TENANCY_NS: "${TENANCY_NAMESPACE}"
   exportedVariables:
     - BUILDRUN_HASH
     - DOCKER_REGISTRY
     - DOCKER_REPO
-
 steps:
+  - type: Command
+    name: "Setup Variables"
+    command: |
+      # Expandir la variable DOCKER_REPO
+      export DOCKER_REPO="${TENANCY_NS}/todolistapp-springboot"
+      echo "DOCKER_REPO=${DOCKER_REPO}" >> $OCI_WORKSPACE_DIR/variables
+      
   - type: Command
     name: "Build Docker Image"
     command: |
@@ -25,9 +31,13 @@ steps:
   - type: Command
     name: "Tag Image"
     command: |
+      # Cargar las variables
+      source $OCI_WORKSPACE_DIR/variables
+      
       # Generar hash único para esta build
       BUILDRUN_HASH=`echo ${OCI_BUILD_RUN_ID} | rev | cut -c 1-7`
       echo "BUILDRUN_HASH: ${BUILDRUN_HASH}"
+      echo "DOCKER_REPO: ${DOCKER_REPO}"
       
       # Etiquetar la imagen para el registro de OCI
       docker tag todolistapp-springboot ${DOCKER_REGISTRY}/${DOCKER_REPO}:${BUILDRUN_HASH}
