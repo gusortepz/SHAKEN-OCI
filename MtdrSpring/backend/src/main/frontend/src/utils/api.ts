@@ -1,4 +1,4 @@
-export const API_BASE_URL = "api";
+export const API_BASE_URL = "http://localhost:8080/api";
 export const API_TASKS = `${API_BASE_URL}/todolist`;
 export const API_USERS = `${API_BASE_URL}/users`;
 export const API_SPRINTS = `${API_BASE_URL}/sprint`;
@@ -188,12 +188,11 @@ export const updateTaskStatus = async (
   newStatus: TaskStatus,
   realTime?: number
 ): Promise<void> => {
-  // If realTime is provided, include it in the updated task
-
   const updatedTask =
     realTime !== undefined
       ? { ...task, status: newStatus, realTime }
       : { ...task, status: newStatus };
+  console.log("Updating task status:", updatedTask);
   const response = await fetch(`${API_TASKS}/${task.id}`, {
     method: "PUT",
     headers: {

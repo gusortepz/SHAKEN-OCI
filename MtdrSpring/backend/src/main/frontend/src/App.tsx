@@ -1,22 +1,16 @@
 "use client"
 
-import { BrowserRouter as Router, Routes, Route, Navigate, useSearchParams } from "react-router-dom"
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { Login } from "./pages/Login"
 import { Dashboard } from "./pages/Dashboard"
 import { KpiDashboard } from "./pages/KpiDashboard"
 import { Layout } from "./components/Layout"
 import { ThemeProvider } from "@/components/theme-provider"
-import { parse } from "date-fns"
 import { Toaster } from "sonner"
 
 function AppRoutes() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [searchParams] = useSearchParams()
-  const dateParam = searchParams.get("date")
-
-  // Parse date from URL if available
-  const selectedDate = dateParam ? parse(dateParam, "yyyy-MM-dd", new Date()) : undefined
 
   useEffect(() => {
     const token = localStorage.getItem("token")
@@ -46,7 +40,7 @@ function AppRoutes() {
         element={
           isAuthenticated ? (
             <Layout>
-              <Dashboard selectedDate={selectedDate} />
+              <Dashboard />
             </Layout>
           ) : (
             <Navigate to="/login" />
