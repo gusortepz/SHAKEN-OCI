@@ -46,7 +46,6 @@ frontend/build
 .env.production.local
 .idea
 
-frontend/package-lock.json
 frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
