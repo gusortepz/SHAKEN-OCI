@@ -79,7 +79,7 @@ export function Login({ setIsAuthenticated }: LoginProps) {
             "This app has saved me countless hours of work and helped me deliver
             stunning projects to my clients faster than ever before."
           </blockquote>
-          <cite className="text-gray-400">Gustavo Ortiz</cite>
+          <cite className="text-gray-400">Pabi</cite>
         </div>
       </div>
 
