@@ -1,7 +1,9 @@
 #!/bin/bash
 SCRIPT_DIR=$(pwd)
+K8S_DIR="$SCRIPT_DIR/k8s"
+CURRENTTIME=$(date '+%F_%H:%M:%S')
 
-#Validation
+# Validación de variables de entorno
 if [ -z "$DOCKER_REGISTRY" ]; then
     export DOCKER_REGISTRY=$(state_get DOCKER_REGISTRY)
     echo "DOCKER_REGISTRY set."
@@ -38,23 +40,25 @@ if [ -z "$UI_USERNAME" ]; then
     exit 1
 fi
 
-echo "Creating springboot deplyoment and service"
-export CURRENTTIME=$( date '+%F_%H:%M:%S' )
-echo CURRENTTIME is $CURRENTTIME  ...this will be appended to generated deployment yaml
-cp src/main/resources/todolistapp-springboot.yaml todolistapp-springboot-$CURRENTTIME.yaml
+# Backend
+cp $K8S_DIR/backend.yaml $K8S_DIR/backend-$CURRENTTIME.yaml
 
-sed -i "s|%DOCKER_REGISTRY%|${DOCKER_REGISTRY}|g" todolistapp-springboot-$CURRENTTIME.yaml
+sed -i "s|%DOCKER_REGISTRY%|${DOCKER_REGISTRY}|g" $K8S_DIR/backend-$CURRENTTIME.yaml
+sed -i "s|%TODO_PDB_NAME%|${TODO_PDB_NAME}|g" $K8S_DIR/backend-$CURRENTTIME.yaml
+sed -i "s|%OCI_REGION%|${OCI_REGION}|g" $K8S_DIR/backend-$CURRENTTIME.yaml
+sed -i "s|%UI_USERNAME%|${UI_USERNAME}|g" $K8S_DIR/backend-$CURRENTTIME.yaml
 
-sed -e "s|%DOCKER_REGISTRY%|${DOCKER_REGISTRY}|g" todolistapp-springboot-${CURRENTTIME}.yaml > /tmp/todolistapp-springboot-${CURRENTTIME}.yaml
-mv -- /tmp/todolistapp-springboot-$CURRENTTIME.yaml todolistapp-springboot-$CURRENTTIME.yaml
-sed -e "s|%TODO_PDB_NAME%|${TODO_PDB_NAME}|g" todolistapp-springboot-${CURRENTTIME}.yaml > /tmp/todolistapp-springboot-${CURRENTTIME}.yaml
-mv -- /tmp/todolistapp-springboot-$CURRENTTIME.yaml todolistapp-springboot-$CURRENTTIME.yaml
-sed -e "s|%OCI_REGION%|${OCI_REGION}|g" todolistapp-springboot-${CURRENTTIME}.yaml > /tmp/todolistapp-springboot-$CURRENTTIME.yaml
-mv -- /tmp/todolistapp-springboot-$CURRENTTIME.yaml todolistapp-springboot-$CURRENTTIME.yaml
-sed -e "s|%UI_USERNAME%|${UI_USERNAME}|g" todolistapp-springboot-${CURRENTTIME}.yaml > /tmp/todolistapp-springboot-$CURRENTTIME.yaml
-mv -- /tmp/todolistapp-springboot-$CURRENTTIME.yaml todolistapp-springboot-$CURRENTTIME.yaml
 if [ -z "$1" ]; then
-    kubectl apply -f $SCRIPT_DIR/todolistapp-springboot-$CURRENTTIME.yaml -n mtdrworkshop
+    kubectl apply -f $K8S_DIR/backend-$CURRENTTIME.yaml -n mtdrworkshop
 else
-    kubectl apply -f <(istioctl kube-inject -f $SCRIPT_DIR/todolistapp-springboot-$CURRENTTIME.yaml) -n mtdrworkshop
+    kubectl apply -f <(istioctl kube-inject -f $K8S_DIR/backend-$CURRENTTIME.yaml) -n mtdrworkshop
 fi
+
+# Frontend 
+cp $K8S_DIR/frontend.yaml $K8S_DIR/frontend-$CURRENTTIME.yaml
+
+sed -i "s|%DOCKER_REGISTRY%|${DOCKER_REGISTRY}|g" $K8S_DIR/frontend-$CURRENTTIME.yaml
+
+kubectl apply -f $K8S_DIR/frontend-$CURRENTTIME.yaml -n mtdrworkshop
+
+echo "Deploy completo."

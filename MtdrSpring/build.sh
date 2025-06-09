@@ -1,8 +1,8 @@
 #!/bin/bash
 
-export IMAGE_NAME=todolistapp-springboot
 export IMAGE_VERSION=0.1
-
+export BACKEND_IMAGE_NAME=todolistapp-backend
+export FRONTEND_IMAGE_NAME=todolistapp-frontend
 
 if [ -z "$DOCKER_REGISTRY" ]; then
     export DOCKER_REGISTRY=$(state_get DOCKER_REGISTRY)
@@ -13,11 +13,17 @@ if [ -z "$DOCKER_REGISTRY" ]; then
     exit 1
 fi
 
-export IMAGE=${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_VERSION}
+export BACKEND_IMAGE=${DOCKER_REGISTRY}/${BACKEND_IMAGE_NAME}:${IMAGE_VERSION}
+export FRONTEND_IMAGE=${DOCKER_REGISTRY}/${FRONTEND_IMAGE_NAME}:${IMAGE_VERSION}
 
-docker build -f Dockerfile -t $IMAGE .
+docker build -f backend/Dockerfile -t $BACKEND_IMAGE ./backend
+docker push $BACKEND_IMAGE
+if [ $? -eq 0 ]; then
+    docker rmi "$BACKEND_IMAGE"
+fi
 
-docker push $IMAGE
-if [  $? -eq 0 ]; then
-    docker rmi "$IMAGE" #local
+docker build -f frontend/Dockerfile -t $FRONTEND_IMAGE ./frontend
+docker push $FRONTEND_IMAGE
+if [ $? -eq 0 ]; then
+    docker rmi "$FRONTEND_IMAGE"
 fi
