@@ -1,4 +1,4 @@
-export const API_BASE_URL = "http://localhost:8080/api";
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const API_TASKS = `${API_BASE_URL}/todolist`;
 export const API_USERS = `${API_BASE_URL}/users`;
 export const API_SPRINTS = `${API_BASE_URL}/sprint`;
