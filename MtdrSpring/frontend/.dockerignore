@@ -1,0 +1,15 @@
+# Node modules y dependencias de frontend
+**/node_modules
+**/build
+**/.cache
+**/dist
+
+# Git y configuración del editor
+.git
+.gitignore
+.idea
+.vscode
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db

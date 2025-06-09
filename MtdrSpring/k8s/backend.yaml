@@ -1,0 +1,63 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: %DOCKER_REGISTRY%/backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: db_user
+              value: "TODOUSER"
+            - name: db_url
+              value: "jdbc:oracle:thin:@%TODO_PDB_NAME%_tp?TNS_ADMIN=/creds"
+            - name: todo.table.name
+              value: "todoitem"
+            - name: driver_class_name
+              value: "oracle.jdbc.OracleDriver"
+            - name: OCI_REGION
+              value: "%OCI_REGION%"
+            - name: dbpassword
+              valueFrom:
+                secretKeyRef:
+                  name: dbuser
+                  key: dbpassword
+            - name: ui_username
+              value: "%UI_USERNAME%"
+            - name: ui_password
+              valueFrom:
+                secretKeyRef:
+                  name: frontendadmin
+                  key: password
+          volumeMounts:
+            - name: creds
+              mountPath: /creds
+      volumes:
+        - name: creds
+          secret:
+            secretName: db-wallet-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
