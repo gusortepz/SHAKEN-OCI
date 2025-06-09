@@ -13,6 +13,17 @@ spec:
       labels:
         app: frontend
     spec:
+      dnsPolicy: None              # << usa dnsConfig tal cual
+      dnsConfig:
+        nameservers:
+          - 10.96.5.5              # IP del Service kube-dns
+        searches:                  # sufijos estándar de K8s
+          - mtdrworkshop.svc.cluster.local
+          - svc.cluster.local
+          - cluster.local
+        options:
+          - name: ndots
+            value: "5"
       containers:
         - name: todolistapp-springboot
           image: %DOCKER_REGISTRY%/todolistapp-springboot:frontend-0.1
