@@ -14,8 +14,8 @@ spec:
         app: frontend
     spec:
       containers:
-        - name: frontend
-          image: %DOCKER_REGISTRY%/frontend:latest
+        - name: todolistapp-springboot
+          image: %DOCKER_REGISTRY%/todolistapp-springboot:frontend-0.1
           imagePullPolicy: Always
           ports:
             - containerPort: 80

@@ -14,8 +14,8 @@ spec:
         app: backend
     spec:
       containers:
-        - name: backend
-          image: %DOCKER_REGISTRY%/backend:latest
+        - name: todolistapp-springboot
+          image: %DOCKER_REGISTRY%/todolistapp-springboot:backend-0.1
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
