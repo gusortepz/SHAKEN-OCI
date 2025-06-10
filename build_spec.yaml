@@ -6,8 +6,8 @@ env:
     REGISTRY: "mx-queretaro-1.ocir.io"
     NAMESPACE: "axlbf0phsb04"
     REPO: "reacttodo/lt0l6/todolistapp-springboot"
-exportedVariables:
-  - BUILDRUN_HASH
+  exportedVariables:
+    - BUILDRUN_HASH
 steps:
   - type: Command
     name: Login to OCIR
