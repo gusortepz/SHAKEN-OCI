@@ -9,7 +9,7 @@ env:
     NAMESPACE: "axlbf0phsb04"
     REPO: "reacttodo/lt0l6/todolistapp-springboot" 
 exportedVariables:
-    - BUILDRUN_HASH
+  - BUILDRUN_HASH
 
 steps:
   - type: Command
