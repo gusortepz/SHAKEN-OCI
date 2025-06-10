@@ -1,56 +1,47 @@
 version: 0.1
 component: build
-timeoutInSeconds: 6000
-runAs: root
-shell: bash
+
+timeoutInSeconds: 3600
+
 env:
   variables:
-    DOCKER_REGISTRY: "qro.ocir.io"
-    TENANCY_NS: "${TENANCY_NAMESPACE}"
-  exportedVariables:
+    REGISTRY: "mx-queretaro-1.ocir.io"
+    NAMESPACE: "axlbf0phsb04"
+    REPO: "reacttodo/lt0l6/todolistapp-springboot" 
+exportedVariables:
     - BUILDRUN_HASH
-    - DOCKER_REGISTRY
-    - DOCKER_REPO
+
 steps:
   - type: Command
-    name: "Setup Variables"
+    name: Login to OCIR
     command: |
-      # Expandir la variable DOCKER_REPO
-      export DOCKER_REPO="${TENANCY_NS}/todolistapp-springboot"
-      echo "DOCKER_REPO=${DOCKER_REPO}" >> $OCI_WORKSPACE_DIR/variables
-      
+      echo "🔑 Autenticando en OCIR..."
+      echo "${auth_token_ocir}" \
+        | docker login $REGISTRY \
+            -u "${user_ocir}" \
+            --password-stdin
   - type: Command
-    name: "Build Docker Image"
+    name: "Define unique image tag"
+    timeoutInSeconds: 40
     command: |
-      # Navegar a la carpeta donde está el Dockerfile
-      cd ${OCI_PRIMARY_SOURCE_DIR}/MtdrSpring/backend
-      
-      # Construir la imagen usando el Dockerfile multi-stage
-      docker build -t todolistapp-springboot .
-      
+      export BUILDRUN_HASH=echo ${OCI_BUILD_RUN_ID} | rev | cut -c 1-7
+      echo "BUILDRUN_HASH: " $BUILDRUN_HASH
   - type: Command
-    name: "Tag Image"
+    name: Build & Push multi-stage (no cache, pull base + prev image)
     command: |
-      # Cargar las variables
-      source $OCI_WORKSPACE_DIR/variables
+      cd MtdrSpring/backend
       
-      # Generar hash único para esta build
-      BUILDRUN_HASH=`echo ${OCI_BUILD_RUN_ID} | rev | cut -c 1-7`
-      echo "BUILDRUN_HASH: ${BUILDRUN_HASH}"
-      echo "DOCKER_REPO: ${DOCKER_REPO}"
-      
-      # Etiquetar la imagen para el registro de OCI
-      docker tag todolistapp-springboot ${DOCKER_REGISTRY}/${DOCKER_REPO}:${BUILDRUN_HASH}
-      docker tag todolistapp-springboot ${DOCKER_REGISTRY}/${DOCKER_REPO}:latest
-      docker tag todolistapp-springboot ${DOCKER_REGISTRY}/${DOCKER_REPO}:0.1
-      
+      docker pull ${REGISTRY}/${NAMESPACE}/${REPO}:${BUILDRUN_HASH} || true
+
+      docker build --pull --no-cache \
+        -f Dockerfile \
+        -t ${REGISTRY}/${NAMESPACE}/${REPO}:${BUILDRUN_HASH} \
+        .
+
+      # 3) push siempre sobre 'latest'
+      docker push ${REGISTRY}/${NAMESPACE}/${REPO}:${BUILDRUN_HASH}
+
 outputArtifacts:
-  - name: todolistapp_springboot_container_image
+  - name: todolist-image
     type: DOCKER_IMAGE
-    location: ${DOCKER_REGISTRY}/${DOCKER_REPO}:${BUILDRUN_HASH}
-  - name: todolistapp_springboot_container_image_latest
-    type: DOCKER_IMAGE
-    location: ${DOCKER_REGISTRY}/${DOCKER_REPO}:latest
-  - name: todolistapp_springboot_container_image_version
-    type: DOCKER_IMAGE
-    location: ${DOCKER_REGISTRY}/${DOCKER_REPO}:0.1
+    location: ${REGISTRY}/${NAMESPACE}/${REPO}:${BUILDRUN_HASH}
