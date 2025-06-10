@@ -1,16 +1,13 @@
 version: 0.1
 component: build
-
 timeoutInSeconds: 3600
-
 env:
   variables:
     REGISTRY: "mx-queretaro-1.ocir.io"
     NAMESPACE: "axlbf0phsb04"
-    REPO: "reacttodo/lt0l6/todolistapp-springboot" 
+    REPO: "reacttodo/lt0l6/todolistapp-springboot"
 exportedVariables:
   - BUILDRUN_HASH
-
 steps:
   - type: Command
     name: Login to OCIR
@@ -24,7 +21,7 @@ steps:
     name: "Define unique image tag"
     timeoutInSeconds: 40
     command: |
-      export BUILDRUN_HASH=echo ${OCI_BUILD_RUN_ID} | rev | cut -c 1-7
+      export BUILDRUN_HASH=$(echo ${OCI_BUILD_RUN_ID} | rev | cut -c 1-7)
       echo "BUILDRUN_HASH: " $BUILDRUN_HASH
   - type: Command
     name: Build & Push multi-stage (no cache, pull base + prev image)
@@ -32,15 +29,12 @@ steps:
       cd MtdrSpring/backend
       
       docker pull ${REGISTRY}/${NAMESPACE}/${REPO}:${BUILDRUN_HASH} || true
-
       docker build --pull --no-cache \
         -f Dockerfile \
         -t ${REGISTRY}/${NAMESPACE}/${REPO}:${BUILDRUN_HASH} \
         .
-
       # 3) push siempre sobre 'latest'
       docker push ${REGISTRY}/${NAMESPACE}/${REPO}:${BUILDRUN_HASH}
-
 outputArtifacts:
   - name: todolist-image
     type: DOCKER_IMAGE
