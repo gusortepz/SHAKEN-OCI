@@ -70,6 +70,16 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 		LocalDate sprintStartDate;
 		LocalDate sprintEndDate;
 		String sprintStatus;
+
+		boolean waitingForItem;
+		Long    itemProjectId;
+		Long    itemSprintId;
+		Long    itemAssigneeId;
+		String  itemDescription;
+		String  itemStatus;
+		String  itemPriority;
+		Integer itemStoryPoints;
+		Float   itemEstimatedTime;
 	}
 	private Map<Long, UserSession> sessions = new ConcurrentHashMap<>();
 	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -473,7 +483,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					logger.error(e.getLocalizedMessage(), e);
 				}
 				
-			}else if (messageTextFromTelegram.endsWith(BotLabels.MARK_DONE.getLabel())) {
+			}else if (messageTextFromTelegram.endsWith(BotLabels.MARK_DONE.getLabel()) &&  session.waitingForItem == false) {
 				String done = messageTextFromTelegram.substring(0,
 						messageTextFromTelegram.indexOf(BotLabels.DASH.getLabel()));
 				Integer id = Integer.valueOf(done);
@@ -489,7 +499,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					logger.error(e.getLocalizedMessage(), e);
 				}
 
-			} else if (messageTextFromTelegram.endsWith(BotLabels.MARK_TODO.getLabel())) {
+			} else if (messageTextFromTelegram.endsWith(BotLabels.MARK_TODO.getLabel()) && session.waitingForItem == false) {
 
 				String undo = messageTextFromTelegram.substring(0,
 						messageTextFromTelegram.indexOf(BotLabels.DASH.getLabel()));
@@ -747,27 +757,35 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					logger.error(e.getLocalizedMessage(), e);
 				}
 			}
-			else if (messageTextFromTelegram.equals(BotCommands.ADD_ITEM.getCommand())
-				|| messageTextFromTelegram.equals(BotLabels.ADD_NEW_ITEM.getLabel())) {
+			else if (messageTextFromTelegram.equals(BotLabels.ADD_NEW_ITEM.getLabel())) {
+				session.waitingForItem     = true;
+				session.itemProjectId      = null;
+				session.itemSprintId       = null;
+				session.itemAssigneeId     = null;
+				session.itemDescription    = null;
+				session.itemStatus         = null;
+				session.itemPriority       = null;
+				session.itemStoryPoints    = null;
+				session.itemEstimatedTime  = null;
 
-					userWaitingForTodo.put(chatId, true);
-				try {
-					
-					SendMessage messageToTelegram = new SendMessage();
-					messageToTelegram.setChatId(chatId);
-					messageToTelegram.setText(BotMessages.TYPE_NEW_TODO_ITEM.getMessage());
-					// hide keyboard
-					ReplyKeyboardRemove keyboardMarkup = new ReplyKeyboardRemove(true);
-					messageToTelegram.setReplyMarkup(keyboardMarkup);
-
-					// send message
-					execute(messageToTelegram);
-					return;
-
-				} catch (Exception e) {
-					logger.error(e.getLocalizedMessage(), e);
+				// List all projects
+				List<Project> projects = projectService.findAllProjects();
+				if (projects.isEmpty()) {
+					sendText(chatId, "⚠️ No projects found. Please create a project first.");
+					session.waitingForItem = false;
+				} else {
+					StringBuilder sb = new StringBuilder("📋 *Available Projects:*\n\n");
+					for (Project p : projects) {
+						sb.append("• ID ")
+						.append(p.getID())
+						.append(": ")
+						.append(p.getName())
+						.append("\n");
+					}
+					sb.append("\nSend me the *Project ID* for this task:");
+					sendText(chatId, sb.toString());
 				}
-
+				return;
 			} else if(messageTextFromTelegram.endsWith(BotLabels.NO_ASSIGNEE.getLabel())){
 				String noAssignee = messageTextFromTelegram.substring(0,
 				messageTextFromTelegram.indexOf(BotLabels.DASH.getLabel()));
@@ -808,53 +826,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					logger.error(e.getLocalizedMessage(), e);
 				}
 
-			} 
-			// else if(messageTextFromTelegram.endsWith("DEVELOPER") || messageTextFromTelegram.endsWith("ADMIN")){
-
-			// 	Pattern taskIdPattern = Pattern.compile("^(\\d+)");
-			// 	Matcher taskIdMatcher = taskIdPattern.matcher(messageTextFromTelegram);
-			// 	Integer taskID = null;
-				
-			// 	if (taskIdMatcher.find()) {
-			// 		taskID = Integer.parseInt(taskIdMatcher.group(1));
-			// 	}
-				
-			// 	// Extract user ID using "User: "
-			// 	Pattern userIdPattern = Pattern.compile("User: (\\d+)");
-			// 	Matcher userIdMatcher = userIdPattern.matcher(messageTextFromTelegram);
-			// 	Integer userId = null;
-				
-			// 	if (userIdMatcher.find()) {
-			// 		userId = Integer.parseInt(userIdMatcher.group(1));
-			// 	}
-
-			// 	System.out.println("Task ID: " + taskID);
-			// 	System.out.println("User ID: " + userId);
-
-			// 	ToDoItem oldItem = toDoItemService.getItemById(taskID);
-
-			// 	System.out.println("********Old item: " + oldItem.toString());
-			// 	ToDoItem newItem = new ToDoItem();
-			// 	newItem.setDescription(oldItem.getDescription());
-			// 	newItem.setCreation_ts(oldItem.getCreation_ts());
-			// 	newItem.setCreatedBy(oldItem.getCreatedBy());
-			// 	newItem.setStatus(oldItem.getStatus());
-			// 	newItem.setPriority(oldItem.getPriority());
-			// 	newItem.setEstimatedTime(oldItem.getEstimatedTime());
-			// 	newItem.setAssignee(Long.valueOf(userId));
-
-	
-				
-			// 	try {
-			// 		toDoItemService.updateToDoItem(taskID, newItem);
-			// 		BotHelper.sendMessageToTelegram(chatId, BotMessages.ITEM_ASSIGNEE_CHANGED.getMessage(), this);
-			// 	} catch (Exception e) {
-			// 		logger.error(e.getLocalizedMessage(), e);
-			// 	}
-
-
-			// } 
-			else if (messageTextFromTelegram.equals(BotLabels.ADD_NEW_SPRINT.getLabel())) {
+			} else if (messageTextFromTelegram.equals(BotLabels.ADD_NEW_SPRINT.getLabel())) {
 				
 				// 1) Mark that we’re in sprint-creation mode
 				session.waitingForSprint    = true;
@@ -995,73 +967,184 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 				
 			}
 
-			if (userWaitingForTodo.getOrDefault(chatId, false)) {
-				System.out.println("User is waiting for todo");
-				
-				try {
-					String[] parts = messageTextFromTelegram.split(" ");
-					if (parts.length < 4 ) {
-
-						BotHelper.sendMessageToTelegram(chatId, "❌ Uso incorrecto. Por favor escribe: <descripción> <estado(TODO|INPROGRESS|DONE)> <tiempoEstimado(hr)>", this);
-						return;
-					}
-					
-					if (!TaskStatus.isValidStatus(parts[1])) {
-						System.out.println("Estado:-" + parts[1] + "-");
-						BotHelper.sendMessageToTelegram(chatId, "❌ El estado debe ser TODO, INPROGRESS o DONE.", this);
-						return;
-					}
+			if (session.waitingForItem) {
+				// a) Project ID
+				if (session.itemProjectId == null) {
 					try {
-						Float.parseFloat(parts[2]);
-						if (Float.parseFloat(parts[2]) > 4) {
-							BotHelper.sendMessageToTelegram(chatId, "❌ El tiempo estimado debe ser de máximo 4 horas!", this);
-							return;
-						}
+						session.itemProjectId = Long.parseLong(messageTextFromTelegram.trim());
 					} catch (NumberFormatException e) {
-						BotHelper.sendMessageToTelegram(chatId, "❌ El tiempo estimado debe ser un número válido.", this);
+						sendText(chatId, "That doesn’t look like a number. Please send a valid *Project ID*:");
 						return;
 					}
-					Long assigneeID = null;
-					if (parts[3] != null) {
-						try {
-							int assigneeId = Integer.parseInt(parts[3]);
-							if (userService.findByID(assigneeId) == null) {
-								BotHelper.sendMessageToTelegram(chatId, "❌ El desarrollador no existe.", this);
-								return;
-							} else {
-								assigneeID = Long.parseLong(parts[3]);
-							}
-						} catch (NumberFormatException e) {
-							BotHelper.sendMessageToTelegram(chatId, "❌ El ID del desarrollador debe ser un número entero.", this);
-							return;
+					// List sprints for that project
+					List<Sprint> sprints = sprintService.findAllSprints().stream()
+						.filter(s -> s.getProjectId().equals(session.itemProjectId))
+						.collect(Collectors.toList());
+					if (sprints.isEmpty()) {
+						sendText(chatId, "⚠️ No sprints for that project. Create a sprint first.");
+						session.waitingForItem = false;
+					} else {
+						StringBuilder sb = new StringBuilder("📋 *Sprints in Project " + session.itemProjectId + ":*\n\n");
+						for (Sprint s : sprints) {
+							sb.append("• ID ").append(s.getID())
+							.append(BotLabels.DASH.getLabel())
+							.append(s.getName())
+							.append(" (").append(s.getStatus()).append(")\n");
 						}
+						sb.append("\nSend me the *Sprint ID* for this task:");
+						sendText(chatId, sb.toString());
 					}
-					String description = parts[0];
-					String status = parts[1];
-					float estimatedTime = Float.parseFloat(parts[2]);
+					return;
+				}
 
-					ToDoItem newItem = new ToDoItem();
-					newItem.setDescription(description);
-					newItem.setCreation_ts(OffsetDateTime.now());
-					//setDone
-					newItem.setCreatedBy((long) user.getID());
-					newItem.setStatus(status);
-					newItem.setPriority("LOW");
-					newItem.setEstimatedTime(estimatedTime);
-					if(assigneeID != null){
-						newItem.setAssignee(assigneeID);
+				// b) Sprint ID
+				if (session.itemSprintId == null) {
+					try {
+						session.itemSprintId = Long.parseLong(messageTextFromTelegram.trim());
+					} catch (NumberFormatException e) {
+						sendText(chatId, "Invalid number. Please send a valid *Sprint ID*:");
+						return;
+					}
+					// List developers for assignment
+					List<User> users = userService.findAll();
+					if (users.isEmpty()) {
+						sendText(chatId, "⚠️ No users found in the system.");
+						session.waitingForItem = false;
+					} else {
+						StringBuilder sb = new StringBuilder("📋 *Available Users:*\n\n");
+						for (User u : users) {
+							sb.append("• ID ")
+							.append(u.getID())
+							.append(": ")
+							.append(u.getUsername())
+							.append(" (").append(u.getRole()).append(")\n");
+						}
+						sb.append("\nSend me the *Assignee ID* for this task:");
+						sendText(chatId, sb.toString());
+					}
+					return;
+				}
+
+				// c) Assignee ID
+				if (session.itemAssigneeId == null) {
+					try {
+						session.itemAssigneeId = Long.parseLong(messageTextFromTelegram.trim());
+					} catch (NumberFormatException e) {
+						sendText(chatId, "Please send a valid *Assignee ID* (number):");
+						return;
+					}
+					sendText(chatId, "Great. Now send me the *task description*:");
+					return;
+				}
+
+				// d) Description
+				if (session.itemDescription == null) {
+					session.itemDescription = messageTextFromTelegram.trim();
+					sendText(chatId, "Whats the *status*? (e.g. TODO, INPROGRESS, DONE)");
+					return;
+				}
+
+				// e) Status
+				if (session.itemStatus == null) {
+					session.itemStatus = messageTextFromTelegram.trim();
+					sendText(chatId, "Priority? (LOW, MEDIUM, HIGH)");
+					return;
+				}
+
+				// f) Priority
+				if (session.itemPriority == null) {
+					session.itemPriority = messageTextFromTelegram.trim().toUpperCase();
+					sendText(chatId, "Send *story points* (integer):");
+					return;
+				}
+
+				// g) Story points
+				if (session.itemStoryPoints == null) {
+					try {
+						session.itemStoryPoints = Integer.parseInt(messageTextFromTelegram.trim());
+					} catch (NumberFormatException e) {
+						sendText(chatId, "Invalid number. Please send *story points* as an integer:");
+						return;
+					}
+					sendText(chatId, "Finally, send the *estimated time* (hours as decimal, e.g. 3.5):");
+					return;
+				}
+
+				// h) Estimated time
+				if (session.itemEstimatedTime == null) {
+					try {
+						session.itemEstimatedTime = Float.parseFloat(messageTextFromTelegram.trim());
+					} catch (NumberFormatException e) {
+						sendText(chatId, "Invalid format. Please send *estimated time* as a decimal number:");
+						return;
 					}
 
-					ToDoItem entity = toDoItemService.addToDoItem(newItem);
+					// — all data collected, build & save —
+					ToDoItem item = new ToDoItem();
+					item.setProjectId(session.itemProjectId);
+					item.setSprintId(session.itemSprintId);
+					item.setAssignee(session.itemAssigneeId);
+					item.setDescription(session.itemDescription);
+					item.setStatus(session.itemStatus);
+					item.setPriority(session.itemPriority);
+					item.setStoryPoints(session.itemStoryPoints);
+					item.setEstimatedTime(session.itemEstimatedTime);
+					item.setCreatedBy(1L);  // hard-coded for now
 
-					SendMessage messageToTelegram = new SendMessage();
-					messageToTelegram.setChatId(chatId);
-					messageToTelegram.setText(BotMessages.NEW_ITEM_ADDED.getMessage());
+					toDoItemService.addToDoItem(item);
 
-					execute(messageToTelegram);
-					userWaitingForTodo.put(chatId, false);
-				} catch (Exception e) {
-					logger.error(e.getLocalizedMessage(), e);
+					// confirm
+					sendText(chatId,
+						"✅ Task created!\n" +
+						"• ID: "   + item.getID() + "\n" +
+						"• Project: " + session.itemProjectId + "\n" +
+						"• Sprint: "  + session.itemSprintId + "\n" +
+						"• Assignee: " + session.itemAssigneeId + "\n" +
+						"• Desc: " + item.getDescription() + "\n" +
+						"• Status: " + item.getStatus() + "\n" +
+						"• Priority: " + item.getPriority() + "\n" +
+						"• SP: " + item.getStoryPoints() + "\n" +
+						"• EstTime: " + item.getEstimatedTime()
+					);
+
+					// clear session
+					sessions.remove(chatId);
+
+					ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+					List<KeyboardRow> keyboard = new ArrayList<>();
+
+					// Row: List All SPRINTS
+					KeyboardRow listRow = new KeyboardRow();
+					listRow.add(BotLabels.LIST_ALL_ITEMS.getLabel());
+					keyboard.add(listRow);
+
+					// Row: Add New SPRINTS
+					KeyboardRow addRow = new KeyboardRow();
+					addRow.add(BotLabels.ADD_NEW_ITEM.getLabel());
+					keyboard.add(addRow);
+
+					// Row: Show Main Screen
+					KeyboardRow mainRow = new KeyboardRow();
+					mainRow.add(BotLabels.SHOW_MAIN_SCREEN.getLabel());
+					keyboard.add(mainRow);
+
+					keyboardMarkup.setKeyboard(keyboard);
+					keyboardMarkup.setResizeKeyboard(true);    // optional: makes it more compact
+					keyboardMarkup.setOneTimeKeyboard(true);   // optional: hide after selection
+
+					// 2) Send the keyboard along with a follow-up prompt
+					SendMessage followUp = SendMessage.builder()
+						.chatId(chatId)
+						.text("What would you like to do next?")
+						.replyMarkup(keyboardMarkup)
+						.build();
+
+					try {
+						execute(followUp);
+					} catch (TelegramApiException e) {
+						logger.error("Error sending post-create keyboard", e);
+					}
+					return;
 				}
 			}
 
