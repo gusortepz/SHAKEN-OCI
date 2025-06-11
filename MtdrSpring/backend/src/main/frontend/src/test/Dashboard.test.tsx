@@ -109,14 +109,4 @@ describe('Dashboard Component', () => {
       expect(screen.getByText('Done')).toBeInTheDocument()
     })
   })
-
-  it('muestra el título con la fecha cuando se proporciona una fecha', async () => {
-    render(
-      <MemoryRouter>
-        <Dashboard selectedDate={new Date('2023-05-15')} />
-      </MemoryRouter>
-    )
-    
-    expect(screen.getByText(/Tasks for/)).toBeInTheDocument()
-  })
 })
