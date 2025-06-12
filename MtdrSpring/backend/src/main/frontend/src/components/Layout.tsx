@@ -1,21 +1,23 @@
-"use client"
+"use client";
 
-import { type ReactNode, useState } from "react"
-import { Sidebar } from "./Sidebar"
-import type { DateRange } from "react-day-picker"
+import { type ReactNode, useState } from "react";
+import { Sidebar } from "./Sidebar";
+import type { DateRange } from "react-day-picker";
 
 interface LayoutProps {
-  children: ReactNode
-  setIsAuthenticated?: (value: boolean) => void
+  children: ReactNode;
+  setIsAuthenticated?: (value: boolean) => void;
 }
 
 export function Layout({ children, setIsAuthenticated }: LayoutProps) {
-  const [selectedDateRange, setSelectedDateRange] = useState<DateRange | undefined>(undefined)
+  const [selectedDateRange, setSelectedDateRange] = useState<
+    DateRange | undefined
+  >(undefined);
 
   const handleDateRangeSelect = (dateRange: DateRange | undefined) => {
-    setSelectedDateRange(dateRange)
+    setSelectedDateRange(dateRange);
     // The actual filtering will be handled in the Dashboard component
-  }
+  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
@@ -29,5 +31,5 @@ export function Layout({ children, setIsAuthenticated }: LayoutProps) {
         <main className="py-4 sm:py-6">{children}</main>
       </div>
     </div>
-  )
+  );
 }
