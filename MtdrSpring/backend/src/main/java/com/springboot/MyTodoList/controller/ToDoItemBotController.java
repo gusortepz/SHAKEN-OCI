@@ -491,7 +491,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 				try {
 
 					ToDoItem item = toDoItemService.getItemById(id);
-					item.setStatus("DONE");
+					item.setStatus("TODO");
 					toDoItemService.updateToDoItem(id, item);
 					BotHelper.sendMessageToTelegram(chatId, BotMessages.ITEM_DONE.getMessage(), this);
 
@@ -508,7 +508,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 				try {
 
 					ToDoItem item = toDoItemService.getItemById(id);
-					item.setStatus("TODO");
+					item.setStatus("INPROGRESS");
 					toDoItemService.updateToDoItem(id, item);
 					BotHelper.sendMessageToTelegram(chatId, BotMessages.ITEM_UNDONE.getMessage(), this);
 
@@ -516,6 +516,22 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					logger.error(e.getLocalizedMessage(), e);
 				}
 
+			} else if (messageTextFromTelegram.endsWith(BotLabels.MARK_IN_PROGRESS.getLabel()) && session.waitingForItem == false) {
+
+				String undo = messageTextFromTelegram.substring(0,
+						messageTextFromTelegram.indexOf(BotLabels.DASH.getLabel()));
+				Integer id = Integer.valueOf(undo);
+
+				try {
+
+					ToDoItem item = toDoItemService.getItemById(id);
+					item.setStatus("DONE");
+					toDoItemService.updateToDoItem(id, item);
+					BotHelper.sendMessageToTelegram(chatId, BotMessages.ITEM_UNDONE.getMessage(), this);
+
+				} catch (Exception e) {
+					logger.error(e.getLocalizedMessage(), e);
+				}
 			} else if (messageTextFromTelegram.indexOf(BotLabels.DELETE.getLabel()) != -1) {
 
 				String delete = messageTextFromTelegram.substring(0,
@@ -593,7 +609,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					}
 					KeyboardRow currentRow = new KeyboardRow();
 					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + item.getDescription());
-					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + BotLabels.MARK_TODO.getLabel());
+					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + item.getStatus());
 					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + BotLabels.DELETE.getLabel());
 					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + assignee);
 
@@ -613,7 +629,7 @@ public class ToDoItemBotController extends TelegramLongPollingBot {
 					}
 					KeyboardRow currentRow = new KeyboardRow();
 					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + item.getDescription());
-					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + BotLabels.MARK_DONE.getLabel());
+					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + item.getStatus());
 					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + BotLabels.DELETE.getLabel());
 					currentRow.add(item.getID() + BotLabels.DASH.getLabel() + assignee);
 
