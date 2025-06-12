@@ -1,39 +1,60 @@
-"use client"
+"use client";
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
-import { useEffect, useState } from "react"
-import { Login } from "./pages/Login"
-import { Dashboard } from "./pages/Dashboard"
-import { KpiDashboard } from "./pages/KpiDashboard"
-import { Layout } from "./components/Layout"
-import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "sonner"
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useSearchParams,
+} from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Login } from "./pages/Login";
+import { Dashboard } from "./pages/Dashboard";
+import { KpiDashboard } from "./pages/KpiDashboard";
+import { Layout } from "./components/Layout";
+import { ThemeProvider } from "@/components/theme-provider";
+import { parse } from "date-fns";
+import { Toaster } from "sonner";
+import Team from "./pages/Team";
+import Projects from "./pages/Projects";
 
 function AppRoutes() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [searchParams] = useSearchParams();
+  const dateParam = searchParams.get("date");
+
+  // Parse date from URL if available
+  const selectedDate = dateParam
+    ? parse(dateParam, "yyyy-MM-dd", new Date())
+    : undefined;
 
   useEffect(() => {
-    const token = localStorage.getItem("token")
-    setIsAuthenticated(!!token)
-  }, [])
+    const token = localStorage.getItem("token");
+    setIsAuthenticated(!!token);
+  }, []);
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "token") {
-        setIsAuthenticated(!!e.newValue)
+        setIsAuthenticated(!!e.newValue);
       }
-    }
-    
-    window.addEventListener("storage", handleStorageChange)
-    return () => window.removeEventListener("storage", handleStorageChange)
-  }, [])
+    };
 
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   return (
     <Routes>
       <Route
         path="/login"
-        element={isAuthenticated ? <Navigate to="/" /> : <Login setIsAuthenticated={setIsAuthenticated} />}
+        element={
+          isAuthenticated ? (
+            <Navigate to="/" />
+          ) : (
+            <Login setIsAuthenticated={setIsAuthenticated} />
+          )
+        }
       />
       <Route
         path="/"
@@ -47,7 +68,10 @@ function AppRoutes() {
           )
         }
       />
-      <Route path="/kpi" element={isAuthenticated ? <KpiDashboard /> : <Navigate to="/login" />} />
+      <Route
+        path="/kpi"
+        element={isAuthenticated ? <KpiDashboard /> : <Navigate to="/login" />}
+      />
       {/* Add more routes as needed */}
       <Route
         path="/dashboard"
@@ -69,10 +93,19 @@ function AppRoutes() {
         element={
           isAuthenticated ? (
             <Layout>
-              <div className="max-w-6xl mx-auto px-4">
-                <h1 className="text-2xl font-bold mb-6">Team</h1>
-                <p>This is a placeholder for the Team page.</p>
-              </div>
+              <Team />{" "}
+            </Layout>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+      <Route
+        path="/projects"
+        element={
+          isAuthenticated ? (
+            <Layout>
+              <Projects />
             </Layout>
           ) : (
             <Navigate to="/login" />
@@ -95,7 +128,7 @@ function AppRoutes() {
         }
       />
     </Routes>
-  )
+  );
 }
 
 export default function App() {
@@ -106,5 +139,5 @@ export default function App() {
         <Toaster />
       </Router>
     </ThemeProvider>
-  )
+  );
 }
