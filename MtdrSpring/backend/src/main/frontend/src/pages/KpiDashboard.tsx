@@ -146,7 +146,10 @@ export function KpiDashboard() {
       ? data.sprintKpis
       : data.sprintKpis.filter((sprint) => sprint.id.toString() === selectedSprint)
 
-  const filteredDeveloperKpis = selectedSprint === "all" ? data.developerKpis : data.developerKpis
+  const filteredDeveloperKpis =
+    selectedSprint === "all"
+      ? data.developerKpis
+      : data.developerSprintKpis.filter((dev) => dev.sprintId.toString() === selectedSprint)
 
   // Calcular totales para las tarjetas de métricas
   const totalTasks = filteredSprintKpis.reduce((acc, sprint) => acc + sprint.totalTasks, 0)
@@ -176,10 +179,10 @@ export function KpiDashboard() {
 
   const storyPointsData = filteredDeveloperKpis
     .filter((dev) => dev.totalStoryPoints > 0)
-    .map((dev, index) => ({
+    .map((dev) => ({
       name: getUsernameById(dev.assigneeId),
       value: dev.totalStoryPoints,
-      fill: `var(--color-dev${index + 1})`,
+      fill: `var(--color-dev${((dev.assigneeId - 1) % 5) + 1})`,
     }))
 
   // Obtener IDs de desarrolladores únicos y filtrar por sprint si es necesario
@@ -442,7 +445,11 @@ export function KpiDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Developer Time Comparison</CardTitle>
-              <CardDescription>Estimated vs Real time by developer</CardDescription>
+              <CardDescription>
+                Estimated vs Real time by developer
+                {selectedSprint !== "all" &&
+                  ` in ${data.sprintKpis.find((s) => s.id.toString() === selectedSprint)?.name || ""}`}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer
@@ -589,7 +596,11 @@ export function KpiDashboard() {
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Developer Completion Rate</CardTitle>
-              <CardDescription>Percentage of tasks completed by developer</CardDescription>
+              <CardDescription>
+                Percentage of tasks completed by developer
+                {selectedSprint !== "all" &&
+                  ` in ${data.sprintKpis.find((s) => s.id.toString() === selectedSprint)?.name || ""}`}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer config={completionRateConfig} className="h-[250px] w-full">
@@ -618,7 +629,11 @@ export function KpiDashboard() {
           <Card className="flex flex-col">
             <CardHeader className="items-center pb-0">
               <CardTitle>Story Points Distribution</CardTitle>
-              <CardDescription>By developer</CardDescription>
+              <CardDescription>
+                By developer
+                {selectedSprint !== "all" &&
+                  ` in ${data.sprintKpis.find((s) => s.id.toString() === selectedSprint)?.name || ""}`}
+              </CardDescription>
             </CardHeader>
             <CardContent className="flex-1 pb-0">
               <ChartContainer config={storyPointsConfig} className="mx-auto aspect-square max-h-[250px] w-full">
@@ -683,7 +698,11 @@ export function KpiDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Developer Performance</CardTitle>
-              <CardDescription>Tasks and completion rates by developer</CardDescription>
+              <CardDescription>
+                Tasks and completion rates by developer
+                {selectedSprint !== "all" &&
+                  ` in ${data.sprintKpis.find((s) => s.id.toString() === selectedSprint)?.name || ""}`}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <ChartContainer config={developerChartConfig} className="h-[300px] w-full">
