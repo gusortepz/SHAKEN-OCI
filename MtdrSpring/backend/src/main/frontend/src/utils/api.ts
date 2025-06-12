@@ -210,12 +210,11 @@ export const updateTaskStatus = async (
   newStatus: TaskStatus,
   realTime?: number
 ): Promise<void> => {
-  // If realTime is provided, include it in the updated task
-
   const updatedTask =
     realTime !== undefined
       ? { ...task, status: newStatus, realTime }
       : { ...task, status: newStatus };
+  console.log("Updating task status:", updatedTask);
   const response = await fetch(`${API_TASKS}/${task.id}`, {
     method: "PUT",
     headers: {

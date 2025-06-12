@@ -61,7 +61,7 @@ function AppRoutes() {
         element={
           isAuthenticated ? (
             <Layout>
-              <Dashboard selectedDate={selectedDate} />
+              <Dashboard />
             </Layout>
           ) : (
             <Navigate to="/login" />
