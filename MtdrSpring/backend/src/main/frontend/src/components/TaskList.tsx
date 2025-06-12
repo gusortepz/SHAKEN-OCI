@@ -38,6 +38,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { useMediaQuery } from "@/hooks/use-media-query"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface TaskListProps {
   title: string
@@ -249,122 +250,124 @@ export function TaskList({
                     </div>
                   </div>
                 ) : (
-                  <ul className="space-y-3">
-                    {filteredTasks.map((task) => {
-                      const updating = isUpdating(task.id)
-                      const sprintName = getSprintNameById(task.sprintId)
+                  <ScrollArea className="h-[400px] overflow-hidden">
+                    <ul className="space-y-3 pr-4">
+                      {filteredTasks.map((task) => {
+                        const updating = isUpdating(task.id)
+                        const sprintName = getSprintNameById(task.sprintId)
 
-                      return (
-                        <li
-                          key={task.id}
-                          className={`border rounded-lg bg-card shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md ${
-                            updating ? "opacity-70 pointer-events-none" : ""
-                          }`}
-                        >
-                          {/* Header with priority and actions */}
-                          <div className="p-3 border-b bg-muted/20">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                  {getPriorityBadge(task.priority)}
-                                  {sprintName && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      {sprintName}
-                                    </Badge>
-                                  )}
+                        return (
+                          <li
+                            key={task.id}
+                            className={`border rounded-lg bg-card shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md ${
+                              updating ? "opacity-70 pointer-events-none" : ""
+                            }`}
+                          >
+                            {/* Header with priority and actions */}
+                            <div className="p-3 border-b bg-muted/20">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                    {getPriorityBadge(task.priority)}
+                                    {sprintName && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        {sprintName}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <h3 className="font-semibold text-sm leading-relaxed break-words pr-2">
+                                    {task.description}
+                                  </h3>
                                 </div>
-                                <h3 className="font-semibold text-sm leading-relaxed break-words pr-2">
-                                  {task.description}
-                                </h3>
-                              </div>
 
-                              <div className="flex items-center gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 flex-shrink-0"
-                                  onClick={() => handleViewTask(task.id)}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                  <span className="sr-only">View task details</span>
-                                </Button>
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0 flex-shrink-0"
+                                    onClick={() => handleViewTask(task.id)}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                    <span className="sr-only">View task details</span>
+                                  </Button>
 
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                      <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    {status === "TODO" && (
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                        <MoreVertical className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      {status === "TODO" && (
+                                        <DropdownMenuItem
+                                          onClick={() => onUpdateStatus(task, "INPROGRESS")}
+                                          disabled={updating}
+                                        >
+                                          <PlayCircle className="h-4 w-4 mr-2" />
+                                          Start Task
+                                        </DropdownMenuItem>
+                                      )}
+                                      {status === "INPROGRESS" && (
+                                        <DropdownMenuItem onClick={() => handleCompleteClick(task)} disabled={updating}>
+                                          <CheckCircle className="h-4 w-4 mr-2" />
+                                          Complete Task
+                                        </DropdownMenuItem>
+                                      )}
+                                      {status === "DONE" && (
+                                        <DropdownMenuItem
+                                          onClick={() => onUpdateStatus(task, "TODO")}
+                                          disabled={updating}
+                                        >
+                                          <RotateCcw className="h-4 w-4 mr-2" />
+                                          Reopen Task
+                                        </DropdownMenuItem>
+                                      )}
                                       <DropdownMenuItem
-                                        onClick={() => onUpdateStatus(task, "INPROGRESS")}
+                                        onClick={() => onDelete(task.id)}
                                         disabled={updating}
+                                        className="text-destructive focus:text-destructive"
                                       >
-                                        <PlayCircle className="h-4 w-4 mr-2" />
-                                        Start Task
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Delete Task
                                       </DropdownMenuItem>
-                                    )}
-                                    {status === "INPROGRESS" && (
-                                      <DropdownMenuItem onClick={() => handleCompleteClick(task)} disabled={updating}>
-                                        <CheckCircle className="h-4 w-4 mr-2" />
-                                        Complete Task
-                                      </DropdownMenuItem>
-                                    )}
-                                    {status === "DONE" && (
-                                      <DropdownMenuItem
-                                        onClick={() => onUpdateStatus(task, "TODO")}
-                                        disabled={updating}
-                                      >
-                                        <RotateCcw className="h-4 w-4 mr-2" />
-                                        Reopen Task
-                                      </DropdownMenuItem>
-                                    )}
-                                    <DropdownMenuItem
-                                      onClick={() => onDelete(task.id)}
-                                      disabled={updating}
-                                      className="text-destructive focus:text-destructive"
-                                    >
-                                      <Trash2 className="h-4 w-4 mr-2" />
-                                      Delete Task
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          {/* Content with metadata */}
-                          <div className="p-3 bg-background">
-                            <div className="grid grid-cols-1 gap-2 text-xs text-muted-foreground">
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-3 w-3 flex-shrink-0" />
-                                <span className="truncate">
-                                  Created {formatDistanceToNow(new Date(task.creation_ts), { addSuffix: true })}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <UserIcon className="h-3 w-3 flex-shrink-0" />
-                                <span className="truncate">{getUsernameById(task.assignee)}</span>
-                              </div>
-                              {task.estimatedTime && (
+                            {/* Content with metadata */}
+                            <div className="p-3 bg-background">
+                              <div className="grid grid-cols-1 gap-2 text-xs text-muted-foreground">
                                 <div className="flex items-center gap-1">
-                                  <Timer className="h-3 w-3 flex-shrink-0" />
-                                  <span>Est: {task.estimatedTime}h</span>
+                                  <Clock className="h-3 w-3 flex-shrink-0" />
+                                  <span className="truncate">
+                                    Created {formatDistanceToNow(new Date(task.creation_ts), { addSuffix: true })}
+                                  </span>
                                 </div>
-                              )}
-                              {task.realTime && (
                                 <div className="flex items-center gap-1">
-                                  <Timer className="h-3 w-3 flex-shrink-0" />
-                                  <span>Real: {task.realTime}h</span>
+                                  <UserIcon className="h-3 w-3 flex-shrink-0" />
+                                  <span className="truncate">{getUsernameById(task.assignee)}</span>
                                 </div>
-                              )}
+                                {task.estimatedTime && (
+                                  <div className="flex items-center gap-1">
+                                    <Timer className="h-3 w-3 flex-shrink-0" />
+                                    <span>Est: {task.estimatedTime}h</span>
+                                  </div>
+                                )}
+                                {task.realTime && (
+                                  <div className="flex items-center gap-1">
+                                    <Timer className="h-3 w-3 flex-shrink-0" />
+                                    <span>Real: {task.realTime}h</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </li>
-                      )
-                    })}
-                  </ul>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </ScrollArea>
                 )}
               </CardContent>
             </CollapsibleContent>
@@ -439,160 +442,164 @@ export function TaskList({
               </div>
             </div>
           ) : (
-            <ul className="space-y-3 sm:space-y-4">
-              {filteredTasks.map((task) => {
-                const updating = isUpdating(task.id)
-                const sprintName = getSprintNameById(task.sprintId)
+            <ScrollArea className="h-[500px]">
+              <ul className="space-y-3 sm:space-y-4 pr-4">
+                {filteredTasks.map((task) => {
+                  const updating = isUpdating(task.id)
+                  const sprintName = getSprintNameById(task.sprintId)
 
-                return (
-                  <li
-                    key={task.id}
-                    className={`border-2 rounded-lg bg-card shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md ${
-                      updating ? "opacity-70 pointer-events-none" : ""
-                    }`}
-                  >
-                    {/* Header with priority and actions */}
-                    <div className="p-3 sm:p-4 border-b bg-muted/20">
-                      <div className="flex items-start justify-between gap-2 sm:gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            {getPriorityBadge(task.priority)}
-                            {sprintName && (
-                              <Badge variant="secondary" className="text-xs">
-                                {sprintName}
-                              </Badge>
-                            )}
+                  return (
+                    <li
+                      key={task.id}
+                      className={`border-2 rounded-lg bg-card shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md ${
+                        updating ? "opacity-70 pointer-events-none" : ""
+                      }`}
+                    >
+                      {/* Header with priority and actions */}
+                      <div className="p-3 sm:p-4 border-b bg-muted/20">
+                        <div className="flex items-start justify-between gap-2 sm:gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              {getPriorityBadge(task.priority)}
+                              {sprintName && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {sprintName}
+                                </Badge>
+                              )}
+                            </div>
+                            <h3 className="font-semibold text-sm leading-relaxed break-words pr-2">
+                              {task.description}
+                            </h3>
                           </div>
-                          <h3 className="font-semibold text-sm leading-relaxed break-words pr-2">{task.description}</h3>
-                        </div>
 
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 flex-shrink-0"
-                          onClick={() => handleViewTask(task.id)}
-                        >
-                          <Eye className="h-4 w-4" />
-                          <span className="sr-only">View task details</span>
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Content with metadata and actions */}
-                    <div className="p-3 sm:p-4 bg-background">
-                      {/* Metadata grid */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3 flex-shrink-0" />
-                          <span className="truncate">
-                            Created {formatDistanceToNow(new Date(task.creation_ts), { addSuffix: true })}
-                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 flex-shrink-0"
+                            onClick={() => handleViewTask(task.id)}
+                          >
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">View task details</span>
+                          </Button>
                         </div>
-                        <div className="flex items-center gap-1">
-                          <UserIcon className="h-3 w-3 flex-shrink-0" />
-                          <span className="truncate">{getUsernameById(task.assignee)}</span>
-                        </div>
-                        {task.estimatedTime && (
-                          <div className="flex items-center gap-1">
-                            <Timer className="h-3 w-3 flex-shrink-0" />
-                            <span>Est: {task.estimatedTime}h</span>
-                          </div>
-                        )}
-                        {task.realTime && (
-                          <div className="flex items-center gap-1">
-                            <Timer className="h-3 w-3 flex-shrink-0" />
-                            <span>Real: {task.realTime}h</span>
-                          </div>
-                        )}
                       </div>
 
-                      {/* Action buttons - Desktop only */}
-                      <div className="flex flex-wrap gap-2 group">
-                        {status === "TODO" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onUpdateStatus(task, "INPROGRESS")}
-                            className="h-8 text-xs flex-1 min-w-0"
-                            disabled={updating}
-                          >
-                            {updating ? (
-                              <>
-                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                Starting...
-                              </>
-                            ) : (
-                              <>
-                                <PlayCircle className="h-3 w-3 mr-1" />
-                                Start
-                              </>
-                            )}
-                          </Button>
-                        )}
-
-                        {status === "INPROGRESS" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleCompleteClick(task)}
-                            className="h-8 text-xs flex-1 min-w-0"
-                            disabled={updating}
-                          >
-                            {updating ? (
-                              <>
-                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                Completing...
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle className="h-3 w-3 mr-1" />
-                                Complete
-                              </>
-                            )}
-                          </Button>
-                        )}
-
-                        {status === "DONE" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => onUpdateStatus(task, "TODO")}
-                            className="h-8 text-xs flex-1 min-w-0"
-                            disabled={updating}
-                          >
-                            {updating ? (
-                              <>
-                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                                Reopening...
-                              </>
-                            ) : (
-                              <>
-                                <RotateCcw className="h-3 w-3 mr-1" />
-                                Reopen
-                              </>
-                            )}
-                          </Button>
-                        )}
-
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => onDelete(task.id)}
-                          className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                          disabled={updating}
-                        >
-                          {isUpdatingTask ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Trash2 className="h-3 w-3" />
+                      {/* Content with metadata and actions */}
+                      <div className="p-3 sm:p-4 bg-background">
+                        {/* Metadata grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">
+                              Created {formatDistanceToNow(new Date(task.creation_ts), { addSuffix: true })}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <UserIcon className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">{getUsernameById(task.assignee)}</span>
+                          </div>
+                          {task.estimatedTime && (
+                            <div className="flex items-center gap-1">
+                              <Timer className="h-3 w-3 flex-shrink-0" />
+                              <span>Est: {task.estimatedTime}h</span>
+                            </div>
                           )}
-                        </Button>
+                          {task.realTime && (
+                            <div className="flex items-center gap-1">
+                              <Timer className="h-3 w-3 flex-shrink-0" />
+                              <span>Real: {task.realTime}h</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Action buttons - Desktop only */}
+                        <div className="flex flex-wrap gap-2 group">
+                          {status === "TODO" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => onUpdateStatus(task, "INPROGRESS")}
+                              className="h-8 text-xs flex-1 min-w-0"
+                              disabled={updating}
+                            >
+                              {updating ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                  Starting...
+                                </>
+                              ) : (
+                                <>
+                                  <PlayCircle className="h-3 w-3 mr-1" />
+                                  Start
+                                </>
+                              )}
+                            </Button>
+                          )}
+
+                          {status === "INPROGRESS" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCompleteClick(task)}
+                              className="h-8 text-xs flex-1 min-w-0"
+                              disabled={updating}
+                            >
+                              {updating ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                  Completing...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  Complete
+                                </>
+                              )}
+                            </Button>
+                          )}
+
+                          {status === "DONE" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => onUpdateStatus(task, "TODO")}
+                              className="h-8 text-xs flex-1 min-w-0"
+                              disabled={updating}
+                            >
+                              {updating ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                  Reopening...
+                                </>
+                              ) : (
+                                <>
+                                  <RotateCcw className="h-3 w-3 mr-1" />
+                                  Reopen
+                                </>
+                              )}
+                            </Button>
+                          )}
+
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => onDelete(task.id)}
+                            className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                            disabled={updating}
+                          >
+                            {isUpdatingTask ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
+                    </li>
+                  )
+                })}
+              </ul>
+            </ScrollArea>
           )}
         </CardContent>
       </Card>
