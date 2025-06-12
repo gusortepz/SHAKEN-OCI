@@ -139,7 +139,7 @@ export function TaskForm({ onAddTask, isLoading }: TaskFormProps) {
         <Button className="flex items-center justify-center gap-2 h-11 px-4 sm:px-6 w-full sm:w-auto">
           <PlusCircle className="h-5 w-5" />
           <span className="hidden sm:inline">Add New Task</span>
-          <span className="sm:hidden">Add Task</span>
+          <span className="sm:hidden">Add New Task</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px] max-h-[90vh] overflow-y-auto mx-4">
