@@ -93,7 +93,7 @@ function AppRoutes() {
         element={
           isAuthenticated ? (
             <Layout>
-              <Team />{" "}
+              <Team />
             </Layout>
           ) : (
             <Navigate to="/login" />

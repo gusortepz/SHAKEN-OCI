@@ -21,6 +21,7 @@ import {
   Settings,
   Users,
   X,
+  Folder,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -160,6 +161,11 @@ export function Sidebar({
       name: "Settings",
       icon: Settings,
       path: "/settings",
+    },
+    {
+      name: "Projects",
+      icon: Folder,
+      path: "/projects",
     },
   ];
 
