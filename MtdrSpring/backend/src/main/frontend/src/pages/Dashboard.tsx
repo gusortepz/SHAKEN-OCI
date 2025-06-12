@@ -362,7 +362,7 @@ export function Dashboard() {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
         </div>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6 lg:grid-cols-3 overflow-hidden">
           <TaskList
             title="To Do"
             tasks={filteredTasks}

@@ -10,8 +10,6 @@ import {
   Cell,
   Label,
   LabelList,
-  Line,
-  LineChart,
   Pie,
   PieChart,
   PolarRadiusAxis,
@@ -54,7 +52,7 @@ const developerChartConfig = {
     color: "hsl(var(--chart-1))",
   },
   completedTasks: {
-    label: "Completed Tasks",
+    label: "Total Tasks",
     color: "hsl(var(--chart-2))",
   },
 } satisfies ChartConfig
@@ -86,13 +84,6 @@ const storyPointsConfig = {
   dev5: {
     label: "Developer #5",
     color: "hsl(var(--chart-5))",
-  },
-} satisfies ChartConfig
-
-const timeEstimationConfig = {
-  estimatedTime: {
-    label: "Estimated Time",
-    color: "hsl(var(--chart-1))",
   },
 } satisfies ChartConfig
 
@@ -138,6 +129,7 @@ export function KpiDashboard() {
     const token = localStorage.getItem("token") || ""
     const fetchKpi = async () => {
       const data = await getKpi(token)
+      console.log("Fetched KPI data:", data)
       setData(data)
     }
     fetchKpi()
@@ -162,6 +154,7 @@ export function KpiDashboard() {
   const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
   const totalStoryPoints = filteredSprintKpis.reduce((acc, sprint) => acc + sprint.totalStoryPoints, 0)
   const totalEstimatedTime = filteredSprintKpis.reduce((acc, sprint) => acc + sprint.totalEstimatedTime, 0)
+  const totalRealTime = filteredSprintKpis.reduce((acc, sprint) => acc + sprint.totalRealTime, 0)
 
   // Preparar datos para gráficos
   const sprintChartData = filteredSprintKpis.map((sprint) => ({
@@ -258,11 +251,6 @@ export function KpiDashboard() {
     tasks: sprint.totalTasks,
   }))
 
-  const devTimeData = filteredDeveloperKpis.map((dev) => ({
-    name: getUsernameById(dev.assigneeId),
-    estimatedTime: dev.totalEstimatedTime,
-  }))
-
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -289,7 +277,7 @@ export function KpiDashboard() {
         </div>
 
         {/* Tarjetas de métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Tasks</CardTitle>
@@ -353,6 +341,24 @@ export function KpiDashboard() {
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Total estimated hours{" "}
+                {selectedSprint === "all"
+                  ? "for all tasks"
+                  : `in ${data.sprintKpis.find((s) => s.id.toString() === selectedSprint)?.name || ""}`}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Real Time</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="text-2xl font-bold">{totalRealTime.toFixed(1)}h</div>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Total real hours{" "}
                 {selectedSprint === "all"
                   ? "for all tasks"
                   : `in ${data.sprintKpis.find((s) => s.id.toString() === selectedSprint)?.name || ""}`}
@@ -435,23 +441,49 @@ export function KpiDashboard() {
           {/* Gráfico de línea para tiempo estimado por desarrollador */}
           <Card>
             <CardHeader>
-              <CardTitle>Developer Time Estimation</CardTitle>
-              <CardDescription>Estimated time by developer</CardDescription>
+              <CardTitle>Developer Time Comparison</CardTitle>
+              <CardDescription>Estimated vs Real time by developer</CardDescription>
             </CardHeader>
             <CardContent>
-              <ChartContainer config={timeEstimationConfig} className="h-[300px] w-full">
-                <LineChart data={devTimeData}>
+              <ChartContainer
+                config={{
+                  estimatedTime: {
+                    label: "Estimated Time",
+                    color: "hsl(var(--chart-1))",
+                  },
+                  realTime: {
+                    label: "Real Time",
+                    color: "hsl(var(--chart-2))",
+                  },
+                }}
+                className="h-[300px] w-full"
+              >
+                <BarChart
+                  data={filteredDeveloperKpis.map((dev) => ({
+                    name: getUsernameById(dev.assigneeId),
+                    estimatedTime: dev.totalEstimatedTime,
+                    realTime: dev.totalRealTime,
+                  }))}
+                >
                   <CartesianGrid vertical={false} strokeDasharray="3 3" />
                   <XAxis dataKey="name" tickLine={false} axisLine={false} />
                   <YAxis tickLine={false} axisLine={false} />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line
-                    type="monotone"
+                  <Bar
                     dataKey="estimatedTime"
-                    stroke="var(--color-estimatedTime)"
-                    strokeWidth={2}
-                    dot={{ fill: "var(--color-estimatedTime)" }}
-                    activeDot={{ r: 6 }}
+                    fill="var(--color-estimatedTime)"
+                    radius={4}
+                    activeBar={({ ...props }) => {
+                      return (
+                        <Rectangle
+                          {...props}
+                          fillOpacity={0.8}
+                          stroke={props.fill}
+                          strokeDasharray={4}
+                          strokeDashoffset={4}
+                        />
+                      )
+                    }}
                   >
                     <LabelList
                       dataKey="estimatedTime"
@@ -460,8 +492,33 @@ export function KpiDashboard() {
                       className="fill-foreground"
                       fontSize={12}
                     />
-                  </Line>
-                </LineChart>
+                  </Bar>
+                  <Bar
+                    dataKey="realTime"
+                    fill="var(--color-realTime)"
+                    radius={4}
+                    activeBar={({ ...props }) => {
+                      return (
+                        <Rectangle
+                          {...props}
+                          fillOpacity={0.8}
+                          stroke={props.fill}
+                          strokeDasharray={4}
+                          strokeDashoffset={4}
+                        />
+                      )
+                    }}
+                  >
+                    <LabelList
+                      dataKey="realTime"
+                      position="top"
+                      formatter={(value: number) => `${value}h`}
+                      className="fill-foreground"
+                      fontSize={12}
+                    />
+                  </Bar>
+                  <ChartLegend content={<ChartLegendContent />} />
+                </BarChart>
               </ChartContainer>
             </CardContent>
           </Card>
