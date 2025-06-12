@@ -56,6 +56,7 @@ export function Dashboard() {
     setIsLoading(true)
     try {
       const data = await fetchTasks(token)
+      console.log("Fetched tasks:", data) // Debugging log
       setTasks(data)
     } catch {
       toast.error("Error", {
