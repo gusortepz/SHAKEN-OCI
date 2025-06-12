@@ -30,6 +30,7 @@ import com.springboot.MyTodoList.model.ToDoItem;
 import com.springboot.MyTodoList.model.User;
 import com.springboot.MyTodoList.service.AuthService;
 import com.springboot.MyTodoList.service.KPIService;
+import com.springboot.MyTodoList.service.ProjectService;
 import com.springboot.MyTodoList.service.SprintService;
 import com.springboot.MyTodoList.service.ToDoItemService;
 import com.springboot.MyTodoList.service.UserService;
@@ -45,6 +46,9 @@ public class ToDoItemBotControllerTest {
 
     @Mock
     private KPIService kpiService;
+
+    @Mock
+    private ProjectService projectService;
 
     @Mock
     private UserService userService;
@@ -63,7 +67,7 @@ public class ToDoItemBotControllerTest {
         MockitoAnnotations.openMocks(this);
 
         spyBot = spy(new ToDoItemBotController(
-                "dummyToken", "TestBot", toDoItemService, userService, authService, sprintService, kpiService));
+                "dummyToken", "TestBot", toDoItemService, userService, authService, sprintService, kpiService, projectService));
 
         captor = ArgumentCaptor.forClass(SendMessage.class);
 

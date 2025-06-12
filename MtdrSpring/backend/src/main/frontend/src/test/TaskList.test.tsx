@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 import { render, screen, waitFor } from "@testing-library/react"
 import { TaskList } from "../components/TaskList"
 import { act } from "react-dom/test-utils"
+import { Task } from "@/utils/api"
+import { SetStateAction } from "react"
 
 vi.spyOn(Storage.prototype, "getItem").mockReturnValue("fake-token")
 
@@ -74,8 +76,9 @@ describe("TaskList Component", () => {
               realTime: 4,
             },
           ]}
-          updatingTaskIds={[]}
-        />,
+          updatingTaskIds={[]} isUpdatingTask={false} setTasks={function (value: SetStateAction<Task[]>): void {
+            throw new Error("Function not implemented.")
+          } }        />,
       )
     })
 
@@ -92,8 +95,9 @@ describe("TaskList Component", () => {
         onDelete={vi.fn()}
         title="Done"
         tasks={[]}
-        updatingTaskIds={[]}
-      />,
+        updatingTaskIds={[]} isUpdatingTask={false} setTasks={function (value: SetStateAction<Task[]>): void {
+          throw new Error("Function not implemented.")
+        } }      />,
     )
 
     expect(screen.getByText(/No tasks in this category/i)).toBeInTheDocument()
@@ -123,8 +127,9 @@ describe("TaskList Component", () => {
               realTime: 4,
             },
           ]}
-          updatingTaskIds={[]}
-        />,
+          updatingTaskIds={[]} isUpdatingTask={false} setTasks={function (value: SetStateAction<Task[]>): void {
+            throw new Error("Function not implemented.")
+          } }        />,
       )
     })
 
