@@ -2,6 +2,7 @@ export const API_BASE_URL = "api";
 export const API_TASKS = `${API_BASE_URL}/todolist`;
 export const API_USERS = `${API_BASE_URL}/users`;
 export const API_SPRINTS = `${API_BASE_URL}/sprint`;
+export const API_PROJECTS = `${API_BASE_URL}/project`;
 
 export enum TaskStatusEnum {
   TODO = "TODO",
@@ -46,6 +47,14 @@ export interface User {
   username: string;
   role: string;
   avatar?: string;
+}
+
+export interface Project {
+  id: number;
+  name: string;
+  description: string;
+  startDate: Date;
+  createdBy: number;
 }
 
 export type SprintKpi = {
@@ -113,6 +122,19 @@ export const fetchSprints = async (token: string): Promise<Sprint[]> => {
     throw new Error("Failed to fetch sprints");
   }
 
+  return response.json();
+};
+
+export const fetchProjects = async (token: string): Promise<Project[]> => {
+  const response = await fetch(API_PROJECTS, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch projects");
+  }
   return response.json();
 };
 
