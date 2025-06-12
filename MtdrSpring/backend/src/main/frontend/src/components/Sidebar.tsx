@@ -15,13 +15,12 @@ import {
   CheckSquare,
   ChevronLeft,
   ChevronRight,
-  LayoutDashboard,
   LogOut,
   Menu,
-  Settings,
   Users,
   X,
   Folder,
+  Rocket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -143,11 +142,6 @@ export function Sidebar({
       path: "/",
     },
     {
-      name: "Dashboard",
-      icon: LayoutDashboard,
-      path: "/dashboard",
-    },
-    {
       name: "KPI",
       icon: BarChart2,
       path: "/kpi",
@@ -158,15 +152,15 @@ export function Sidebar({
       path: "/team",
     },
     {
-      name: "Settings",
-      icon: Settings,
-      path: "/settings",
-    },
-    {
       name: "Projects",
       icon: Folder,
       path: "/projects",
     },
+    {
+      name: "Sprints",
+      icon: Rocket,
+      path: "/sprints",
+    }
   ];
 
   // Get current page title
