@@ -1,5 +1,6 @@
 package com.springboot.MyTodoList.service;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +31,7 @@ public class ToDoItemService {
         }
     }
     public ToDoItem addToDoItem(ToDoItem toDoItem){
+        toDoItem.setCreation_ts(OffsetDateTime.now());
         return toDoItemRepository.save(toDoItem);
     }
 
